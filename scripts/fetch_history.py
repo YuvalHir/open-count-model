@@ -15,7 +15,7 @@ def get(url):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    pkg = json.loads(get("https://data.gov.il/api/3/action/package_show?id=votes-knesset"))["result"]
+    pkg = json.loads(get("https://data.gov.il/api/3/action/package_show?id=26f9fa06-fcd7-4173-8df5-65797b63e857"))["result"]
     for r in pkg["resources"]:
         name = r.get("name", "")
         if "קלפיות" not in name or r.get("format") not in ("CSV", "XLS"):
@@ -24,7 +24,7 @@ def main():
         dest = os.path.join(OUT, f"ballots_k{k}.{r['format'].lower()}")
         if os.path.exists(dest):
             continue
-        print("fetching", k, r["url"])
+        r["url"] = r["url"].replace("//e.data.gov.il", "//data.gov.il"); print("fetching", k, r["url"])
         open(dest, "wb").write(get(r["url"]))
 
 if __name__ == "__main__":
