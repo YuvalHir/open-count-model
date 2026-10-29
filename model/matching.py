@@ -38,8 +38,27 @@ def _site_pass(c, p, out, used, cr, pr, cap=0.7):
                 if cost[x, y] <= cap:
                     out[ci[x]] = pi[y]; used.add(pi[y])
 
+def _split_pass(c, p, out, num_w=0.02, cap=0.5):
+    """Leftover current places: a big previous place of size R is treated as k=round(R/s) equal parts (one-to-many splits)."""
+    cr = c.registered.values.astype(float); pr = p.registered.values.astype(float)
+    used = set(out[out >= 0]); cg = c.groupby("loc_code").indices; pg = p.groupby("loc_code").indices
+    for l, ci in cg.items():
+        if l not in pg: continue
+        ci = np.array([i for i in ci if out[i] < 0]); pi = np.array([j for j in pg[l] if j not in used])
+        if len(ci) == 0 or len(pi) == 0: continue
+        s = max(float(np.median(cr[ci])), 1.0); ks = np.maximum(1, np.round(pr[pi] / s)).astype(int)
+        cols = np.repeat(np.arange(len(pi)), ks); part = pr[pi][cols] / ks[cols]
+        cost = np.abs(np.log(cr[ci][:, None] / np.maximum(part[None, :], 1)))
+        cost = cost + num_w * np.abs(c.station.values[ci][:, None] - p.station.values[pi][cols][None, :]) ** 0.5
+        a, b = linear_sum_assignment(cost)
+        for x, y in zip(a, b):
+            if cost[x, y] <= cap: out[ci[x]] = pi[cols[y]]
+    return out
+
 def match(c, p, strategy="exact", ratio=1.67, num_w=0.02, cap=0.7, reuse=None):
     c = c.reset_index(drop=True); p = p.reset_index(drop=True)
+    if strategy == "split":
+        return _split_pass(c, p, match(c, p, "fill"))
     if strategy in ("site", "site2"):
         reuse = strategy == "site2"
         out = np.full(len(c), -1); used = set()

@@ -6,7 +6,8 @@ from .load import load_history, load_live, live_snapshots
 from .project import build_frame, project
 from .backtest import seats_of, AGREEMENTS
 
-STRATS = ["exact", "fill", "site", "site2"]
+STRATS = sys.argv[1].split(",") if len(sys.argv) > 1 else ["exact", "fill", "site", "site2"]
+OUT = sys.argv[2] if len(sys.argv) > 2 else "results/matching.csv"
 
 def share_err(pr, truth):
     a = np.array(list(pr.values())); a /= a.sum(); b = truth / truth.sum()
@@ -47,7 +48,7 @@ def main():
                     r[f"{oname}_{int(f*100)}_seats"] = np.mean(serr)
             rows.append(r)
     d = pd.DataFrame(rows)
-    d.to_csv("results/matching.csv", index=False)
+    d.to_csv(OUT, index=False)
     pd.set_option("display.width", 250)
     print(d.round(2).to_string())
     print(d.groupby("strategy").mean(numeric_only=True).drop(columns="T").round(2).to_string())
