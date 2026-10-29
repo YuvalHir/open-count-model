@@ -4,3 +4,4 @@ __pycache__/
 .vault/
 *.token
 .env
+data-raw/cbs/
