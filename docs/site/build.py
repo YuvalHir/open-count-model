@@ -125,7 +125,7 @@ envtbl = "".join(f"<tr><td>{k}</td><td>{a}</td><td>{b}</td></tr>" for k, a, b in
 PAGE = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>המודל: איך מנבאים תוצאות סופיות מסדר פרסום הקלפיות | התחזית</title>
-<link rel="stylesheet" href="style.css"><style>.f{{direction:ltr;text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:10px 0;font-family:ui-monospace,Menlo,monospace;font-size:14.5px;overflow-x:auto}}td.n,th.n{{text-align:left}}</style></head>
+<link rel="stylesheet" href="style.css"><style>.f{{direction:ltr;text-align:left;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:10px 0;font-family:ui-monospace,Menlo,monospace;font-size:14.5px;overflow-x:auto}}td.n,th.n{{text-align:left}}th{{white-space:nowrap}}code{{direction:ltr;unicode-bidi:isolate;font-size:.92em}}pre.f{{white-space:pre-wrap;word-break:break-all}}</style></head>
 <body><div class="wrap">
 <header class="top"><a class="logo" href="/"><b>התחזית</b> · כנסת 26</a><span class="stamp">גרסה 1 · קוד פתוח · {REPO.split('//')[1]}</span></header>
 <div class="banner">זהו מודל סטטיסטי ניסיוני, לא תוצאה רשמית ולא סקר. כל מספר של המודל מסומן {CALC}; כל נתון גולמי מסומן {OFF}. רק ועדת הבחירות המרכזית מפרסמת תוצאות רשמיות.</div>
@@ -204,7 +204,14 @@ B = argmin Σ_p w_p ‖y(p) − B·x(p)‖² + λ‖B‖²,  w_p = √(valid_p),
 <li>הדיוק בשלב מוקדם מאוד (1% נספרו) חלש.</li></ul>
 
 <h2>8. שחזור</h2>
-<p>הקוד, הנתונים שנאספו והמבחנים: <a href="{REPO}">{REPO}</a>. להרצה: <code>python3 scripts/fetch_history.py</code> ואז <code>python3 -m model.backtest</code>, <code>python3 -m model.coverage</code>, <code>python3 -m model.simulate</code>. דף זה נבנה מתוצאות המאגר ע״י <code>docs/site/build.py</code>. תיעוד: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
+<p>הקוד, הנתונים שנאספו והמבחנים: <a href="{REPO}" dir="ltr">{REPO}</a>. להרצה:</p>
+<pre class="f">python3 scripts/fetch_history.py
+python3 -m model.backtest
+python3 -m model.coverage
+python3 -m model.simulate
+python3 -m model.live_forecast
+python3 docs/site/build.py</pre>
+<p>דף זה נבנה מתוצאות המאגר על ידי הסקריפט האחרון. תיעוד נוסף במאגר: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
 <footer>הנתונים הגולמיים הם של ועדת הבחירות המרכזית (https://votes26.bechirot.gov.il, https://data.gov.il). פרויקט עצמאי, אינו מזוהה עם הוועדה ואינו מאושר על ידה. המודל אינו סקר ואינו תוצאה רשמית.</footer>
 </main></div></body></html>"""
 open("docs/site/index.html", "w", encoding="utf8").write(PAGE)
