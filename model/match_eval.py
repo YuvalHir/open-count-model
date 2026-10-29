@@ -2,11 +2,11 @@
 and the effect on projection error (ridge, 10% and 20% counted) in a random and a biased order."""
 import sys, warnings; warnings.filterwarnings("ignore")
 import numpy as np, pandas as pd
-from .load import load_history
+from .load import load_history, load_live, live_snapshots
 from .project import build_frame, project
 from .backtest import seats_of, AGREEMENTS
 
-STRATS = ["exact", "guard", "assign", "hybrid", "fill"]
+STRATS = ["exact", "fill", "site", "site2"]
 
 def share_err(pr, truth):
     a = np.array(list(pr.values())); a /= a.sum(); b = truth / truth.sum()
@@ -14,8 +14,9 @@ def share_err(pr, truth):
 
 def main():
     rows = []
-    for T in (22, 23, 24, 25):
-        cur, prev = load_history(T), load_history(T - 1)
+    for T in (22, 23, 24, 25, 26):
+        cur = load_live(live_snapshots()[-1][1]) if T == 26 else load_history(T)
+        prev = load_history(T - 1)
         for st in STRATS:
             fr, yc, xc = build_frame(cur, prev, st)
             vc = ["v_" + y[2:] for y in yc]; tv = fr[vc].sum().values
@@ -24,6 +25,9 @@ def main():
             # profile quality: matched stations only, distance between this share vector and the matched previous profile
             # (lists differ across elections, so use only the same-letter lists present in both)
             r = dict(T=T, strategy=st, matched_votes_pct=100 * mv)
+            for k in ("מחל", "ג", "שס"):
+                if "y_" + k in fr:   # error of the matched previous-election profile for this list, all places, vote-weighted, percentage points
+                    r["profile_MAE_" + k] = 100 * float(np.average(np.abs(fr["y_" + k] - fr["x_" + k]), weights=fr.valid))
             for oname in ("random", "low_likud_first"):
                 for f in (0.05, 0.20):
                     errs, serr = [], []

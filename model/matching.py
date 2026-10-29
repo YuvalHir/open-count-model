@@ -17,8 +17,63 @@ def _pairs_exact(c, p):
     key = {(l, s): i for i, (l, s) in enumerate(zip(p.loc_code, p.station))}
     return np.array([key.get((l, s), -1) for l, s in zip(c.loc_code, c.station)])
 
-def match(c, p, strategy="exact", ratio=1.67, num_w=0.02, cap=0.7):
+def _site_pass(c, p, out, used, cr, pr, cap=0.7):
+    """Match places that stand in the same building (same address, then same name) by size within that building."""
+    for key in (["s_addr", "s_name"], ["s_addr"], ["s_name"]):
+        cg = c[(out < 0)].groupby(["loc_code"] + key).indices if False else None
+        free_c = np.where(out < 0)[0]
+        free_p = np.array([j for j in range(len(p)) if j not in used])
+        if len(free_c) == 0 or len(free_p) == 0:
+            break
+        ck = c.iloc[free_c].groupby(["loc_code"] + key).indices
+        pk = p.iloc[free_p].groupby(["loc_code"] + key).indices
+        for k, ci in ck.items():
+            if k not in pk:
+                continue
+            ci = free_c[ci]; pi = free_p[pk[k]]
+            cost = np.abs(np.log(cr[ci][:, None] / np.maximum(pr[pi][None, :], 1)))
+            cost = cost - 0.3 * (c.station.values[ci][:, None] == p.station.values[pi][None, :])
+            a, b = linear_sum_assignment(cost)
+            for x, y in zip(a, b):
+                if cost[x, y] <= cap:
+                    out[ci[x]] = pi[y]; used.add(pi[y])
+
+def match(c, p, strategy="exact", ratio=1.67, num_w=0.02, cap=0.7, reuse=None):
     c = c.reset_index(drop=True); p = p.reset_index(drop=True)
+    if strategy in ("site", "site2"):
+        reuse = strategy == "site2"
+        out = np.full(len(c), -1); used = set()
+        cr = c.registered.values.astype(float); pr = p.registered.values.astype(float)
+        if "s_addr" in c and "s_addr" in p:
+            _site_pass(c, p, out, used, cr, pr)
+        if "s_addr" in c and "s_name" in p and reuse:
+            for key in (["s_addr", "s_name"], ["s_addr"], ["s_name"]):
+                pk = p.groupby(["loc_code"] + key).indices
+                for i in np.where(out < 0)[0]:
+                    k = tuple(c.iloc[i][["loc_code"] + key])
+                    if len(key) == 1: k = tuple(k)
+                    if k in pk:
+                        pi = pk[k]; dd = np.abs(np.log(cr[i] / np.maximum(pr[pi], 1)))
+                        if dd.min() <= 1.0:   # within a factor of ~2.7 in registered voters
+                            out[i] = pi[np.argmin(dd)]
+        ex = _pairs_exact(c, p)
+        for i, j in enumerate(ex):
+            if out[i] < 0 and j >= 0 and j not in used:
+                out[i] = j; used.add(j)
+        cg = c.groupby("loc_code").indices; pg = p.groupby("loc_code").indices
+        for l, ci in cg.items():
+            if l not in pg:
+                continue
+            ci = np.array([i for i in ci if out[i] < 0]); pi = np.array([j for j in pg[l] if j not in used])
+            if len(ci) == 0 or len(pi) == 0:
+                continue
+            cost = np.abs(np.log(cr[ci][:, None] / np.maximum(pr[pi][None, :], 1)))
+            cost = cost + num_w * np.abs(c.station.values[ci][:, None] - p.station.values[pi][None, :]) ** 0.5
+            a, b = linear_sum_assignment(cost)
+            for x, y in zip(a, b):
+                if cost[x, y] <= cap:
+                    out[ci[x]] = pi[y]
+        return out
     ex = _pairs_exact(c, p)
     if strategy == "exact":
         return ex

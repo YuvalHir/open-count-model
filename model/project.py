@@ -15,7 +15,7 @@ MIN_SHARE_Y = 0.003   # T lists below this national share are pooled as "other"
 def regular(df):
     return df[(~df.is_envelope) & (df.valid > 0) & (df.registered > 0)].copy()
 
-def build_frame(cur: pd.DataFrame, prev: pd.DataFrame, strategy: str = "fill"):
+def build_frame(cur: pd.DataFrame, prev: pd.DataFrame, strategy: str = "site"):
     cur, prev = to_places(cur), to_places(prev)
     """Return (frame, ycols, xcols). One row per regular station of `cur` with T-1 features.
     Unmatched stations get their locality's T-1 profile, or the national one."""
@@ -38,6 +38,18 @@ def build_frame(cur: pd.DataFrame, prev: pd.DataFrame, strategy: str = "fill"):
     nat = (prev_f[xcols] * w).sum() / prev_f.valid.sum()
     f = cur[["loc_code", "loc_name", "station", "registered", "voters", "invalid", "valid"]].reset_index(drop=True).copy()
     cur_r = cur.reset_index(drop=True)
+    if strategy in ("site", "site2"):
+        from .addresses import load_addr
+        Tc, Tp = int(cur_r.knesset.iloc[0]) if "knesset" in cur_r else None, int(prev.knesset.iloc[0])
+        ac, ap = load_addr(Tc), load_addr(Tp)
+        if ac is not None and ap is not None:
+            cur_r = cur_r.assign(place_no=cur_r.station.astype(float).astype(int)).merge(ac, on=["loc_code", "place_no"], how="left")
+            prev_f = prev_f.assign(place_no=prev_f.station.astype(float).astype(int)).merge(ap, on=["loc_code", "place_no"], how="left")
+            if "registered_listed" in cur_r:   # K26 layer is a pre-election draft: trust an address only if its listed voters match the live file
+                bad = ~(cur_r.registered / cur_r.registered_listed).between(0.9, 1.1)
+                cur_r.loc[bad, ["s_addr", "s_name"]] = np.nan
+            cur_r["s_addr"] = cur_r.s_addr.fillna(pd.Series("?c" + cur_r.index.astype(str), index=cur_r.index)); cur_r["s_name"] = cur_r.s_name.fillna(pd.Series("?c" + cur_r.index.astype(str), index=cur_r.index))
+            prev_f["s_addr"] = prev_f.s_addr.fillna(pd.Series("?p" + prev_f.index.astype(str), index=prev_f.index)); prev_f["s_name"] = prev_f.s_name.fillna(pd.Series("?p" + prev_f.index.astype(str), index=prev_f.index))
     pcols = xcols + ["valid"]
     # match voting places by (locality, place number); otherwise fall back to the locality profile
     from .matching import match
@@ -47,6 +59,12 @@ def build_frame(cur: pd.DataFrame, prev: pd.DataFrame, strategy: str = "fill"):
     ok = idx >= 0
     for c in pcols:
         m[c if c != "valid" else "prev_valid"] = np.where(ok, b[c].values[np.where(ok, idx, 0)], np.nan)
+    # a previous place reused by several current places (a building that gained boxes): split its votes by registered voters
+    mult = pd.Series(idx[ok]).map(pd.Series(idx[ok]).value_counts()).values
+    shared = np.zeros(len(m), bool); shared[np.where(ok)[0]] = mult > 1
+    if shared.any():
+        scale = cur_r.registered.values[shared] / prev_f.registered.values[idx[shared]]
+        m.loc[shared, "prev_valid"] = m.prev_valid[shared].values * scale
     m["matched"] = m.prev_valid.notna()
     um = ~m.matched
     for c in xcols:
