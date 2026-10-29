@@ -1,0 +1,5 @@
+K22: envelope valid votes 280,216 = 6.3% of all valid; פה: env 30.2% vs regular 25.7%; מחל: env 27.8% vs regular 24.9%; ודעם: env 4.3% vs regular 11.0%; שס: env 6.3% vs regular 7.5%; ל: env 5.0% vs regular 7.1%
+K23: envelope valid votes 327,702 = 7.1% of all valid; מחל: env 32.7% vs regular 29.2%; פה: env 29.9% vs regular 26.3%; ודעם: env 5.5% vs regular 13.2%; שס: env 7.1% vs regular 7.7%; ג: env 4.1% vs regular 6.1%
+K24: envelope valid votes 421,619 = 9.6% of all valid; מחל: env 24.4% vs regular 24.2%; פה: env 13.8% vs regular 13.9%; שס: env 5.7% vs regular 7.3%; כן: env 6.3% vs regular 6.7%; ג: env 3.3% vs regular 5.9%
+K25: envelope valid votes 458,714 = 9.6% of all valid; מחל: env 23.5% vs regular 23.4%; פה: env 16.9% vs regular 17.9%; ט: env 15.5% vs regular 10.3%; כן: env 10.6% vs regular 8.9%; שס: env 6.8% vs regular 8.4%
+K26 so far: envelope boxes 378 valid 195489 of 5409377

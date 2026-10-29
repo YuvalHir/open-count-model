@@ -71,8 +71,8 @@ def main():
         print(T, "stations", len(frame), "matched valid share %.3f" % (frame.valid[frame.matched].sum() / frame.valid.sum()))
         out.append(df)
     res = pd.concat(out)
-    os.makedirs("out", exist_ok=True)
-    res.to_csv("out/backtest.csv", index=False)
+    os.makedirs("results", exist_ok=True)
+    res.to_csv("results/backtest.csv", index=False)
     print(res.groupby(["T", "method", "frac"])[["share_mae_pp", "seats_misallocated"]].mean().unstack([0]).round(2).to_string())
 
 if __name__ == "__main__":

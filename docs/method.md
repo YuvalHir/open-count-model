@@ -19,7 +19,7 @@ Uncertainty (`project_draws`): cluster bootstrap over localities (parameter unce
 locality-level residuals scaled by 1/sqrt(size). Heuristic; checked by `model/coverage.py`.
 
 Not modelled yet: external envelopes ("double envelopes", loc_code 9999). In Knesset 22-25 they were
-6.3-9.6% of valid votes and leaned differently from regular boxes (see `out/envelopes.txt`, e.g. Hadash-Ta'al
+6.3-9.6% of valid votes and leaned differently from regular boxes (see `results/envelopes.txt`, e.g. Hadash-Ta'al
 4.3% vs 11.0% in K22; Religious Zionism 15.5% vs 10.3% in K25). In 2026 the file shows 378 envelope boxes (195,489 valid votes)
 at the first snapshot, so the final batch is still to come. Needs its own component.
 

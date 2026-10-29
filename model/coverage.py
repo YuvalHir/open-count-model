@@ -28,6 +28,6 @@ def run(T, n_draws=150, fracs=(0.02, 0.05, 0.20, 0.40), seeds=2, q=(0.1, 0.9)):
 
 if __name__ == "__main__":
     r = pd.concat([run(T) for T in (25, 23, 22)])
-    r.to_csv("out/coverage.csv", index=False)
+    r.to_csv("results/coverage.csv", index=False)
     print(r.groupby("frac")[["hit", "width"]].mean().round(2))
     print(r.groupby(["T", "frac"]).hit.mean().unstack().round(2))

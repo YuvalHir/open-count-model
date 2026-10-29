@@ -12,7 +12,7 @@ IMPORTANT LIMITS
 - Seat metric: half the sum of absolute seat differences over lists (seats that ended up on the wrong list).
 - The 2026 surplus agreements are taken from public reporting; verify the letters before using 2026 seat numbers.
 
-Figure: `docs/backtest_seats.png`. Pooled over Knesset 22-26 replays (numbers from out/backtest.csv):
+Figure: `docs/backtest_seats.png`. Pooled over Knesset 22-26 replays (numbers from results/backtest.csv):
 
 | places counted | random order: counted-so-far | random order: projection | worst biased order: counted-so-far | worst biased order: projection |
 |---|---|---|---|---|
@@ -38,5 +38,5 @@ Test: predict Knesset 25 envelope list shares from K25 regular-box shares plus t
 difference of K22-24, same list letters. Mean absolute error over all lists: 0.565 share points for the naive
 "same as regular boxes", 0.531 with the historical lean. A small gain. It fixes the Haredi/Arab dip (e.g. Shas 8.4% regular,
 6.8% in envelopes, estimate 6.8%) but misses new swings (Religious Zionism 15.5% true vs 11.2% estimated). Envelope
-votes were 10.7% of regular valid votes in K25. Output: `out/envelope_backtest.txt`. Envelope totals are not yet
+votes were 10.7% of regular valid votes in K25. Output: `results/envelope_backtest.txt`. Envelope totals are not yet
 wired into the seat projection.

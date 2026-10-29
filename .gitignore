@@ -4,4 +4,3 @@ __pycache__/
 .vault/
 *.token
 .env
-out/
