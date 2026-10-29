@@ -1,0 +1,5 @@
+# Pre-registration matchsens-v1 (Claude-idea 8). Written 29.10.2026 ~23:59 IST, before any run.
+Question: how fast does projection error grow as the share of votes in matched boxes falls (K26 sits at 76% while K22-24 are at 97-99%)?
+Method: take each pair T=22..26 as built (frozen frame). Degrade matching by turning matched boxes into "unmatched": their T-1 features (x_*, prev_valid, x_turn, x_logreg) are replaced by the locality's valid-weighted mean over matched boxes of that locality (national mean if none). Targets: matched votes share 90, 85, 76, 65 percent (only when below the pair's own level). Two kinds: random boxes, and structured = largest boxes first (these are the typical hard-to-match big stations; assumption).
+Outcome: share MAE pp and seats misallocated, random order and low_likud_first, counted 5% and 20%, seeds 0-2 for random. Report the curve as a table; slope per 10 points of matched share.
+This is diagnostic. No rule or parameter change follows. DEVELOPMENT data, simulated orders. K26 is not a holdout.
