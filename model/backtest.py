@@ -15,8 +15,10 @@ from .seats import allocate
 FRACS = [0.01, 0.02, 0.05, 0.10, 0.20, 0.40, 0.60, 0.80]
 AGREEMENTS = {
     25: [("אמת", "מרצ"), ("ג", "שס"), ("מחל", "ט"), ("פה", "כן")],
-    # 2026: from public reporting of the signed agreements; letters per CEC list; verify before relying on seats.
-    26: [("מחל", "ט"), ("שס", "ג"), ("דרך", "אמת"), ("רק", "ל")],
+    # 2026: five agreements filed by the 16.10.2026 deadline (Globes did=1001561042, Ynet hjextlj2gl, Kikar):
+    # Likud-Religious Zionism, Shas-UTJ, Yashar-Democrats, Together(Bennett)-Yisrael Beiteinu, Ra'am-Joint List.
+    # Letters per CEC list page https://www.gov.il/he/pages/candidates-lists-26. Not yet checked against CEC's own agreement notice.
+    26: [("מחל", "ט"), ("שס", "ג"), ("דרך", "אמת"), ("רק", "ל"), ("עם", "ודם")],
 }
 
 def orders(frame, rng):
