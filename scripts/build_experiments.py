@@ -33,6 +33,13 @@ add("swing", "תנודה לאומית, 5% נספרו, סדר ליכוד נמוך
 _m = pd.read_csv(R + "matchsens.csv"); _m = _m[(_m.order == "random") & np.isclose(_m.frac, .2) & (_m.kind != "large_first")]
 _m["t"] = (_m.target * 100).round()
 add("matching", "הורדת אחוז הקולות בקלפיות מותאמות מ-90% ל-65% (דיאגנוסטי), 20% נספרו", "טעות בנתח הקולות", _m[_m.t == 90].share_mae_pp.mean(), _m[_m.t == 65].share_mae_pp.mean(), "פיתוח: כנסות 22-26 (נקבע מראש, matchsens-v1)", "ההשפעה מתונה: עד 76% כמעט אין פגיעה")
+_e = pd.read_csv(R + "envelope_models.csv"); _eg = _e.groupby(["scheme", "model"]).mae_pp.mean()
+add("envelopes", "מודל יחס במקום מודל הפרש למעטפות, רק עבר (כנסות 23-26)", "טעות בנתח הקולות במעטפות", _eg[("past_only", "additive")], _eg[("past_only", "ratio")], "פיתוח: כנסות 23-26 (נקבע מראש, ideas569-v1)", "עומד בכלל שנקבע, אבל בלי הבדל במנדטים")
+add("envelopes", "מודל יחס במקום מודל הפרש, כל הכנסות האחרות כהיסטוריה", "טעות בנתח הקולות במעטפות", _eg[("loo", "additive")], _eg[("loo", "ratio")], "פיתוח: כנסות 22-26 (נקבע מראש, ideas569-v1)", "לא יציב: רשימות קטנות בהיסטוריה מנפחות את היחס")
+_r = pd.read_csv(R + "rake_exit.csv"); _r = _r[_r.n == 60]
+def _rg(sc, d): return _r[(_r.scenario.isin(sc)) & (_r.design == d)].seats_oop.mean()
+add("exitpoll", "שקלול (rake) לפי הצבעה קודמת בתוך קבוצות פרופיל, חוסר מענה, 60 קלפיות", "מנדטים שגויים", _rg(["shy15", "hard_nr"], "strat_prior"), _rg(["shy15", "hard_nr"], "rake_pg"), "פיתוח: סימולציה, כנסות 22-26 (נקבע מראש, ideas569-v1)", "משתפר כשיש חוסר מענה")
+add("exitpoll", "אותו שקלול, בלי בעיות במענה", "מנדטים שגויים", _rg(["none"], "strat_prior"), _rg(["none"], "rake_pg"), "פיתוח: סימולציה, כנסות 22-26 (נקבע מראש, ideas569-v1)", "מחמיר בלי בעיות ובשקר מעורב: נדחה")
 t = pd.read_csv(R + "turnout_k26.csv"); t = t[t.order == "random"].groupby(["size_from_turnout", "turnout_feature"]).share_mae_pp.mean()
 add("turnout", "גודל קלפי מקובץ ההצבעה ב-20:00", "טעות בנתח הקולות", t[(0, 0)], t[(1, 0)], "פיתוח: כנסת 26")
 add("turnout", "אחוז הצבעה כמשתנה במודל", "טעות בנתח הקולות", t[(0, 0)], t[(0, 1)], "פיתוח: כנסת 26")
