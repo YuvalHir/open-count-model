@@ -96,6 +96,27 @@ _d = load_live(snaps[-1][1]); LFREG = int((~_d.is_envelope).sum()); K25REG = int
 N26 = {"מחל": "הליכוד", "דרך": "ישר!", "רק": "ביחד (בנט)", "ודם": "הרשימה המשותפת", "אמת": "הדמוקרטים", "עם": "רע״ם", "ב": "עוצמה יהודית", "ג": "יהדות התורה", "ל": "ישראל ביתנו", "ט": "הציונות הדתית", "שס": "ש״ס", "די": "המילואימניקים", "ך": "עמך ישראל"}
 LFTBL = "".join(f"<tr><td>{N26.get(k,k)} ({k})</td><td>{v['share_counted_pct']:.2f}%</td><td>{v['seats_median']:.0f}</td><td>{v['seats_lo']:.0f} עד {v['seats_hi']:.0f}</td></tr>" for k, v in sorted(LF['lists'].items(), key=lambda kv: -kv[1]['seats_median']))
 
+
+# ---------- TV exit-poll comparison ----------
+_tv = pd.read_csv("results/tv_exit_poll_comparison.csv")
+_tvs = _tv[(_tv.scored == "yes") & (_tv.source_tier.isin(["A", "B"]))]
+_ek = {21: "אפריל 2019 (כנסת 21)", 22: "ספטמבר 2019 (כנסת 22)", 23: "מרץ 2020 (כנסת 23)", 24: "מרץ 2021 (כנסת 24)", 25: "נובמבר 2022 (כנסת 25)"}
+_cn = {"Channel 12": "ערוץ 12", "Channel 13": "ערוץ 13", "Kan 11": "כאן 11"}
+TV_ROWS = ""
+for _e in [21, 22, 23, 24, 25]:
+    _r = _tvs[_tvs.election == _e]
+    _cells = "".join(f"<td>{_r[_r.channel == c].out_of_place.iloc[0]:.0f}</td>" if (_r.channel == c).any() else "<td>חסר</td>" for c in _cn)
+    _tier = "ב (טבלת ויקיפדיה, לא אומת כראשון)" if _e == 21 else "א (דיווח חדשותי מליל הבחירות)"
+    TV_ROWS += f"<tr><td>{_ek[_e]}</td>{_cells}<td>{_tier}</td></tr>"
+_ex = pd.read_csv("results/exitpoll.csv")
+def _sim(sc, Ts=(22, 23, 24, 25)):
+    q = _ex[(_ex.design == "strat_prior") & (_ex.n_places == 60) & (_ex.m == 100) & (_ex.scenario == sc) & (_ex["T"].isin(Ts))]
+    return q.seats_misallocated.mean()
+_tvA = _tvs[_tvs.election.isin([22, 23, 24, 25])]
+TV_N = len(_tvs); TV_MEAN = _tvs.out_of_place.mean(); TV_MIN = _tvs.out_of_place.min(); TV_MAX = _tvs.out_of_place.max()
+TV_MEAN_A = _tvA.out_of_place.mean(); TV_MAE = _tvs.mae_list.mean()
+SIM_NONE = _sim("none"); SIM_HARD = _sim("hard_both")
+
 # ---------- page ----------
 def tag(k, t): return f'<span class="t {k}">{t}</span>'
 OFF, CALC = tag("off", "נתוני ועדת הבחירות"), tag("calc", "חישוב שלנו")
@@ -347,7 +368,20 @@ B = argmin Σ_p w_p ‖y(p) − B·x(p)‖² + λ‖B‖²,  w_p = √(valid_p),
 <li>נתוני נבדקים לפי קלפי מסקרים קודמים (אינם ציבוריים).</li>
 <li>עד אז, כל המספרים כאן הם סימולציות של תכנון תחת הנחות.</li></ul>
 
-<h2>10. שחזור</h2>
+<h2>10. סקרי היציאה בטלוויזיה מול התוצאות הסופיות (מבחן ראשון, נקבע מראש)</h2>
+<p>המדד נקבע <b>לפני החישוב</b> ונשמר במאגר: <code>docs/prereg/tv_exit_poll_comparison.md</code> (קומיט a80b1a7). מדד ראשי: מנדטים שמחוץ למקומם, כלומר סכום ההפרשים המוחלטים בין המנדטים החזויים לסופיים, חלקי 2, על פני כל הרשימות. תוצאות סופיות: ועדת הבחירות המרכזית (votes21 עד votes25.bechirot.gov.il). התחזיות: מהדיווח הראשון שמצאנו בעיתונות, עם קישור לכל ערך ב-<code>data/tv_exit_polls/tv_exit_polls.csv</code>.</p>
+<table><tr><th>בחירות</th><th>ערוץ 12</th><th>ערוץ 13</th><th>כאן 11</th><th>סוג מקור</th></tr>{TV_ROWS}</table>
+<p class="small">מספרים: מנדטים שמחוץ למקומם. {CALC}. בכנסת 25 רק ערוץ 12 מלא; לערוצים 13 וכאן 11 מצאנו רק שתי הרשימות הגדולות ולכן הם לא נספרו (חסר, לא הוערך).</p>
+<p>סיכום ({TV_N} תאים, ערוץ בחירות): ממוצע {TV_MEAN:.1f} מנדטים שמחוץ למקומם, טווח {TV_MIN:.0f} עד {TV_MAX:.0f}. שגיאה ממוצעת לרשימה: {TV_MAE:.2f} מנדטים. בכנסות 22 עד 25 בלבד: ממוצע {TV_MEAN_A:.1f}. אין מבחן מובהקות, המדגם קטן.</p>
+<p>הסימולציה שלנו (תכנון עם 60 קלפיות, 100 ראיונות בכל אחת, בחירה מרובדת לפי הבחירות הקודמות), באותה הגדרה, כנסות 22 עד 25: {SIM_NONE:.1f} בלי בעיות דגימה, {SIM_HARD:.1f} בהנחות הקשות. זה <b>נתוני פיתוח</b> והנחות שלנו, לא תוצאה אמיתית.</p>
+<h3>מגבלות והשוואה הוגנת</h3>
+<ul><li><b>אין כאן טענה שניצחנו את הטלוויזיה.</b> הסימולציה מניחה שהמראיינים רושמים נכון ושהקלפיות נבחרות לפי הבחירות הקודמות. אנחנו לא יודעים את גודל המדגם בפועל של כל ערוץ בכל בחירות, ולכן אין השוואה שווה בין התנאים.</li>
+<li>תחזית ה-22:00 היא לעיתים אחרי עדכון: ויקיפדיה מציגה לרוב את העדכון האחרון, ולכן השתמשנו בעיתונות. כנסת 21 מבוססת על טבלת ויקיפדיה (שני המנדטים הגדולים אומתו מול Ynet). כנסת 24 מ-Globes ב-22:48, ייתכן שאחרי הפרסום הראשון.</li>
+<li>הערכים הם מספרים שלמים, ועיגול משפיע: טעות של מנדט אחד ברשימה אחת נספרת כחצי.</li>
+<li>5 בחירות, 13 תאים. כנסת 26: התחזיות נשמרו ולא נספרו, עד שיהיו תוצאות סופיות רשמיות.</li>
+<li>המדד "מנדטים שמחוץ למקומם" אינו מדד גושים. הוא נקבע מראש כך.</li></ul>
+
+<h2>11. שחזור</h2>
 <p>הקוד, הנתונים שנאספו והמבחנים: <a href="{REPO}" dir="ltr">{REPO}</a>. להרצה:</p>
 <pre class="f">python3 scripts/fetch_history.py
 python3 -m model.backtest
@@ -355,6 +389,8 @@ python3 -m model.coverage
 python3 -m model.simulate
 python3 -m model.live_forecast
 python3 -m model.exitpoll
+python3 scripts/build_tv_data.py
+python3 model/tv_compare.py
 python3 docs/site/build.py</pre>
 <p>דף זה נבנה מתוצאות המאגר על ידי הסקריפט האחרון. תיעוד נוסף במאגר: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
 <footer>הנתונים הגולמיים הם של ועדת הבחירות המרכזית (https://votes26.bechirot.gov.il, https://data.gov.il). פרויקט עצמאי, אינו מזוהה עם הוועדה ואינו מאושר על ידה. המודל אינו סקר ואינו תוצאה רשמית.</footer>

@@ -1,0 +1,17 @@
+election,channel,source_tier,complete,scored,pred_sum,out_of_place,mae_list,top_err,top2_gap_err,n_lists
+21,Channel 12,B,full,yes,120,5.0,0.9090909090909091,2,4,11
+21,Channel 13,B,full,yes,120,8.0,1.3333333333333333,1,0,12
+21,Kan 11,B,full,yes,120,7.0,1.2727272727272727,1,1,11
+22,Channel 12,A,full,yes,120,4.0,0.8888888888888888,1,0,9
+22,Channel 13,A,full,yes,120,2.0,0.4444444444444444,0,1,9
+22,Kan 11,A,full,yes,120,3.0,0.6666666666666666,1,1,9
+23,Channel 12,A,full,yes,120,2.0,0.5,1,1,8
+23,Channel 13,A,full,yes,120,3.0,0.75,1,2,8
+23,Kan 11,A,full,yes,120,2.0,0.5,0,0,8
+24,Channel 12,A,full,yes,120,7.0,1.0769230769230769,1,0,13
+24,Channel 13,A,full,yes,120,7.0,1.0769230769230769,3,4,13
+24,Kan 11,A,full,yes,120,5.0,0.7692307692307693,1,0,13
+25,Channel 12,A,full,yes,120,7.0,1.2727272727272727,2,2,11
+25,Channel 12 (later update),S,full,yes,120,5.0,0.9090909090909091,1,0,11
+25,Channel 13,P,partial,no (partial list),,,,,,
+25,Kan 11,P,partial,no (partial list),,,,,,
