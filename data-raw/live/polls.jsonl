@@ -928,3 +928,19 @@
 {"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:37:17.369Z"}
 {"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:38:18.560Z"}
 {"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:38:18.560Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:39:29.890Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:39:29.890Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:40:30.272Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:40:30.272Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:41:32.574Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:41:32.574Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:42:33.953Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:42:33.953Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:43:34.357Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:43:34.357Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:44:45.608Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:44:45.608Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:45:47.394Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:45:47.394Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:46:48.928Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:46:48.928Z"}
