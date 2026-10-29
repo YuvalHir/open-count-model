@@ -88,5 +88,13 @@ try:
         q = C[(C.order == o) & (C.frac == 0.2)].groupby("mode").share_mae_pp.mean()
         add("data", "מדד חברתי-כלכלי של הלמ\"ס כמשתנה נוסף: " + lab + " (20% נספרו)", "שגיאת נתח (נק' אחוז)", q["base"], q["cbs"], "פיתוח: כנסות 22-26", "אין שיפור לפי הכלל שנקבע מראש")
 except FileNotFoundError: pass
+
+try:
+    R3 = pd.read_csv(R + "round3.csv"); R3 = R3[R3["T"] >= 23]
+    q3 = lambda o, f, m: R3[(R3.order == o) & (R3.frac == f) & (R3.method == m)].seats.mean()
+    for o, lab in (("pl8", "סדר מוטה מאוד"), ("pl0", "סדר אקראי")):
+        add("stack", "שילוב מודלים בזמן אמת (ערימה רציפה של בסיס, העברה וקיזוז): " + lab + " (5% נספרו)", "מנדטים שגויים", q3(o, 0.05, "base"), q3(o, 0.05, "stack"), "פיתוח: כנסות 23-26", "לא אומץ: נכשל בכלל שנקבע מראש")
+        add("stack", "מודל ההעברה עם קנס קבוע (לא גדל עם הספירה): " + lab + " (5% נספרו)", "מנדטים שגויים", q3(o, 0.05, "base"), q3(o, 0.05, "transfer_const"), "פיתוח: כנסות 23-26", "לא אומץ")
+except FileNotFoundError: pass
 pd.DataFrame(rows).to_csv(R + "experiments.csv", index=False)
 print(pd.DataFrame(rows)[["tried", "baseline", "variant", "change_pct", "verdict"]].to_string())
