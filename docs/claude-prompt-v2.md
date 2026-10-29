@@ -1,0 +1,59 @@
+# Prompt v2 for Claude: we tested your first ten ideas; give us ones that are genuinely different
+
+You are a statistician / election-forecasting researcher. Below is the state of an open-source project (MIT, https://github.com/YuvalHir/open-count-model). In round 1 you gave 10 ideas. We ran 7 of them (1, 2, 3, 5, 6, 8, 9), pre-registered, on all election pairs K21->22 ... K25->26. Results, including what failed and why, are in section 4. I want NEW ideas: not rephrasings of round 1 (listed in section 5), not things already tried (section 4 and 6). If you think a round-1 idea is still right in a changed form, say precisely what changes and why the test above does not kill it. Read everything, including negative results, before answering.
+
+## 1. The problem
+Israeli elections (Knesset, 120 seats, 3.25% threshold, Bader-Ofer with surplus-vote agreements). On election night the Central Elections Committee (CEC, ועדת הבחירות המרכזית) publishes results polling station by polling station as counting ends. The order stations appear is NOT random: it depends on station size, location, counting speed, and sector. A raw "counted so far" total is therefore biased early on. Separately, "double envelopes" (soldiers, hospitals, prisoners, diplomats; 6.3-9.6% of valid votes in K22-25) are counted last and vote differently from regular boxes.
+Goal: from the stations counted so far, predict the final seat distribution, with honest uncertainty. A closed-source site (Votes26) claims to do this. We do not claim parity with it and have no evidence either way.
+Second goal (exit polls): design an exit-poll sample (which boxes, how many interviews) and estimator, using only information available at 22:00 on election day, and compare with TV exit polls.
+
+## 2. Data we have (updated 30.10.2026)
+- CEC final per-box results for Knesset 21-25 (votes21..votes25.bechirot.gov.il). K26: the count is now complete per the CEC and the media (29.10.2026); we use our own calculation from the last CEC live file (12,018 regular boxes, 908 envelope rows, 5,690,778 valid votes): 27 Likud, 21 Yashar, 12 Beyachad, 11 Joint List, 8 Ra'am, 8 Democrats, 7 Yisrael Beiteinu, 7 UTJ, 7 Otzma, 6 Shas, 6 Religious Zionism, equal to the announced seats. Formal CEC publication is due 4.11.2026; one media-quoted CEC message gave different totals (about 5.59M voters), unresolved.
+- Per box: locality code, box number (sub-boxes merged to "place"), registered, voters, valid, votes per list. No address or coordinates in these files; box numbers change between elections.
+- CEC polling-place address lists K21-25 and a K26 govmap layer. Final per-box turnout K21-25; intraday (20:00) per-box turnout for K26 only. National turnout by hour K21-26. TV exit polls K21-K26.
+- Arrival order: past orders are NOT public, so every backtest uses SIMULATED orders (random, small first, large first, low turnout first, low-Likud first). For K26 we recorded the real order only after most regular boxes were in.
+- All K22-26 results are DEVELOPMENT data. K26 is not an independent holdout. Frozen method tags: matching-rules-v1, exitpoll-designs-v1, diagnosis-v1, dashboard-ideal-v1, lies-mc-v1, matching-split-v1(b), decomp-v1, sizemodel-v1, swing-v1, matchsens-v1, ideas569-v1.
+
+## 3. The model (frozen at tag matching-rules-v1)
+- Unit: voting place = (locality, integer part of box number). Features in election T: shares of each T-1 list (>=0.5% nationally, rest pooled), T-1 turnout, log registered. Targets: T list shares (>=0.3%, rest pooled).
+- One multi-output ridge (lambda 5, weights sqrt(valid)) fit on places counted so far predicts uncounted places. Uncounted place size = T-1 valid votes x counted growth ratio. Total = counted + predicted, then Bader-Ofer with agreements.
+- Uncertainty: cluster bootstrap over localities + resampled locality residuals.
+- Matching between elections: votes matched by (locality, place): K21->22 99%, 22->23 97%, 23->24 97%, 24->25 92%, 25->26 76%. Unmatched places get their locality profile (else national).
+- Envelopes (6.3-9.6% of valid votes): not in the seat projection. Separate estimator: regular-box shares + mean historical gap.
+
+## 4. Round-1 results (metric: share MAE in percentage points, and seats out of place = half the sum of absolute seat differences, out of 120; mean over K22-26 pairs; DEVELOPMENT)
+Baseline model: random order, 5% counted 2.1 seats out of place vs raw total 5.1; worst biased order (low-Likud first) 20% counted 21 vs 76; at 1% counted biased about 69.
+- Idea 1 (error decomposition, decomp-v1, diagnostic): with true box sizes (oracle size) and predicted shares, error in the biased order stays 2.34 -> 2.34 pp (20%, low-Likud first) and 7.18 -> 7.16 (5%); with true shares and predicted sizes it is 0.17 and 0.22. So under biased orders almost all error is in SHARES. Under random order the opposite: 20% counted base 0.179, oracle size 0.066, oracle share 0.170: sizes are most of the error.
+- Idea 2 (size model, sizemodel-v1): ridge of log size growth on the same features. Random order 20% counted: 0.179 -> 0.103 (better on 4/5 pairs, worse on K26). But low-turnout-first 20%: 0.417 -> 0.612 (+47%). REJECTED by the pre-registered rule (no more than +5% in any biased order). Variant scaling size by registered voters: worse everywhere.
+- Idea 3 (national log-swing target instead of regression, swing-v1): REJECTED. Random 20%: 0.179 -> 0.377; shrunk half-swing 0.684; worse on all 5 pairs. BUT an EARLY-HELP LEAD: with 1-5% counted in orders correlated with politics it helps a lot: low-Likud-first 1%: 7.80 -> 5.35 (half-swing 4.55); 5%: 7.18 -> 5.22 (4.49); low-turnout-first 1%: 4.09 -> 2.72; small-first 1%: 2.43 -> 1.23 (1.14). At 20% counted it is worse in all orders (low-Likud 2.34 -> 3.16). Not adopted. Not tested: blending the two by counted fraction (would be tuning).
+- Idea 8 (match-rate sensitivity, matchsens-v1, diagnostic): degrading matched votes to 90 / 85 / 76 / 65%: random order 20% counted error 0.198 / 0.196 / 0.204 / 0.232 (largest boxes unmatched first: 0.173 / 0.160 / 0.168 / 0.232). K26 real (76%): 0.147. So a 76% match costs almost nothing; the low K25->K26 match is not the main problem. Biased orders noisy, not monotone.
+- Idea 5 (seat-level draws, calibration, ideas569-v1): 60 bootstrap draws through Bader-Ofer. Coverage of the 80% seat interval per list, K22..K26: random 5%: 0.67 0.88 0.69 1.00 0.82; random 20%: 0.67 0.75 0.85 1.00 0.91; low-Likud-first 5%: 0.70 0.50 0.46 0.67 0.36; 20%: 0.80 0.62 0.62 0.67 0.55. Threshold-passing Brier near 0 under random order, 0.18-0.41 under biased order at 5%. Widening by a national factor chosen leave-one-election-out (1.5-4) lifts biased coverage to 0.64-0.90 but not reliably. Verdict: calibration is NOT good under biased orders.
+- Idea 6 (envelope ratio vs additive gap): past-only history (K23-26) mean share MAE 0.518 additive -> 0.441 ratio (ratio better on 3 of 4 pairs); seats out of place unchanged (1.0 vs 1.0). With all other elections as history the ratio model is unstable: 1.484 vs 0.526 (tiny lists in history inflate ratios). Meets the pre-registered rule on past-only but not adopted: no seat gain and unstable.
+- Idea 9 (past-vote raking inside the 3 profile groups, exit-poll simulation, 60 places x 100 interviews): seats out of place with non-response (shy15, hard_nr) 7.49 vs 8.00 for strat_prior (about 6% better), but without problems 7.38 vs 5.18 and with noise+shy 14.4 vs 8.9. REJECTED. (Single-margin past-vote weighting was already worse earlier, +65%.) A true joint current x past-vote rake needs the joint table, which we do not have.
+- Not run: idea 4 (random effects; overlaps with matching variants that gave no gain), 7 (needs real past orders), 10 (extra metrics only).
+
+## 5. Round-1 ideas (do not repeat)
+1 error decomposition; 2 size model on turnout / log registered / locality type; 3 compositional swing with shrinkage; 4 locality random effects + sector clusters for unmatched votes; 5 seat-level joint draws, threshold probabilities, Brier / coverage; 6 envelope ratio model; 7 realistic arrival-order model; 8 match-rate sensitivity; 9 exit-poll raking to past-vote totals; 10 log-score / Aitchison distance and freezing a v2 tag.
+
+## 6. Earlier tried and failed or no effect
+Size-based fill of unmatched places (match 83% -> 92%, share error -3%); address matching (-1.4%); address reuse (+18%, worse); box splitting (-0.9%); cumulative-voter alignment within locality (match 76% -> 89% in K26, but share error 0.13 -> 0.34, +25% worse); leave-one-election-out hyperparameters (no gain); turnout as feature (no gain); box size from the 20:00 turnout file (-18%, K26 only, because that file exists only for K26); doubling interviews per box (-3.5%) vs doubling boxes (-16.6%); past-vote weighting alone (+65% worse); lying Monte Carlo (ideal design median 6 seats out of place, range 2-12; plain draw 9; TV mean K22-25 4.2).
+TV exit polls K21-25: mean 4.8 seats out of place (range 2-8); Arab lists under-predicted every time (-1.2 seats). K26 vs our calculation of the complete count: Kan 5, Channel 12 6, Channel 13 5, i24 6, Channel 16 6, Channel 14 10.
+
+## 7. Constraints
+- Fully open source, MIT. No copying third-party code or data of unclear license. Official CEC data and our own computations only.
+- Honesty: label "official (CEC)" vs "our calculation" vs "assumption"; development vs held-out data; keep negative results visible. Never present model output as an official result. No claim of parity with Votes26 and no claim of beating TV polls without real evidence. K26 is not an independent holdout (the model and rules were frozen at tags matching-rules-v1, exitpoll-designs-v1, diagnosis-v1, dashboard-ideal-v1 before K26 results were final; K22-25 are development data).
+- Exit-poll estimator may use only information available at 22:00: past results, national turnout so far, the sample itself. No peeking at the CEC count.
+- Pre-register metric and design before computing.
+
+## 8. What we need now
+The main unsolved problem is early-count bias under a biased arrival order (share error 7 pp at 5% counted, 21 seats out of place at 20%). Round 1 told us the error is shares, not sizes; the swing lead says a different target helps early and hurts later. Open directions we have NOT tried and want your view on:
+- A genuinely different model structure for early counts (e.g. a mixture or switching model that learns from the counted boxes whether the order is biased, a hierarchical model with partial pooling across sectors that do not need place matching, transfer-matrix / ecological-inference models, or using the observed ARRIVAL ORDER itself as information).
+- Ways to use the early-help lead without tuning on K22-26.
+- Using side information we may not use yet (locality demographics from public CBS data, past-election geography, the structure of when a box reports) and how to test it honestly.
+- Calibrated seat uncertainty in biased orders, where our intervals under-cover.
+- Threshold-list handling and small-list errors.
+- Exit-poll estimators that remain valid under unknown lying (we only know our own assumptions, not measurements).
+- Anything we mis-specified: loss function, evaluation protocol, how to claim anything with only simulated orders and development data.
+
+## 9. Output wanted
+A ranked list (max 8) of concrete, testable ideas that are NOT in sections 5 and 6. For each: the idea in 2-3 sentences; mechanism; exact test on our data with development vs held-out discipline (what to pre-register, metric, baseline, expected size of effect, what result counts as failure); overfitting or honesty risks; cost in hours. Say explicitly if an idea from round 1 deserves a second try and what is different. Call out ideas that our evidence already contradicts. Finish with the three experiments to run first.
