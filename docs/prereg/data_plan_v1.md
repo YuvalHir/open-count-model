@@ -1,0 +1,8 @@
+# Pre-registration data-plan-v1: outside data for the early-count problem. Written 30.10.2026 ~00:22 IST. Nothing below has been modelled yet.
+Checked today (30.10 00:19-00:21):
+- over.org.il "archive" of per-box results: the archive scans the datastore of data.gov.il and stamps first_seen on every new row. For K25 the final file was already static years before the archive existed, so first_seen would be the scan time, not election-night arrival. NOT an arrival-order source (page content is a JS app; not downloaded). K26: we hold our own recorded CEC files, which are better.
+- data.gov.il "social_economic_cluster" (ESHKOL 2019 per locality, license "Other (Open)"): 995 localities, but only localities inside regional councils: it covers 10.8% of valid votes in K22 and 10.7% in K25 (no cities). Not usable as a model feature. The fuller CBS 2021 locality index sits on cbs.gov.il (xlsx); not downloaded, license not yet checked.
+Plan (order; each step pre-registered and tagged before running; development K22-26, holdout K19-21 where the data exist for those years):
+1. Check license and coverage of the CBS 2021 socio-economic index and locality population file (by locality code). Use only if coverage of valid votes >= 90% and the license is open. Test: add the index (and log population) as ridge features, share MAE vs method-v2 on T=22..26 and the K19-21 holdout; success: >=10% lower in biased orders at 5% and 20% counted and <=+5% in random order.
+2. Only if step 1 shows signal: box geocoding to statistical areas and census variables (heavy; not started).
+3. Counting-center arrival hypothesis: untestable for past elections (no public past counting-center lists or order); we only record K26 real order after most regular boxes were in. Not planned.
