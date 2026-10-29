@@ -13,3 +13,9 @@ Metrics: share of votes matched; projection error (share MAE in points and seats
 Development: pairs K21->22 ... K24->25 (K22-25 results). Target pair: K25->K26 on the live file (K26 is not final and not an independent holdout: reported but labelled).
 Decision rule: "better" = projection error at least 5% lower than `fill` averaged over K22-25 pairs and not worse on K26; match rate alone is not enough (earlier lesson: higher match did not improve projection).
 Negative results will be reported.
+
+## Addendum A (written after the `split` run, before any run of the strategies below)
+Result of `split` (reported separately): K25->K26 match 75.75% -> 76.07%, no projection gain. Diagnosis: K26 and K25 have almost the same number of boxes (12,005 vs 11,707; Tel Aviv 766 vs 736) but K26 uses many more distinct integer place numbers (8,679 vs 6,306 places; Tel Aviv 424 vs 304), so K25 places are all consumed by the 1:1 `fill` and the remaining K26 places have no K25 partner left. Reuse of a K25 place by several K26 places is needed from the start.
+New strategies (same decision rule, same development and target pairs):
+- `cum` : per locality, order places by number. Anchors = same number and registered voters within a factor 1.28 (|log ratio| < 0.25). Between consecutive anchors (and before the first / after the last), place each K26 place at the midpoint of its cumulative registered voters and assign it to the K25 place whose cumulative interval (in the same segment) contains that midpoint. Segments whose total registered voters differ by more than a factor of 2 are skipped. Many K26 places can share one K25 place (votes split by registered voters, existing code).
+- `fillcum` : `fill`, then `cum` only for the places `fill` left unmatched, using all K25 places of the locality.
