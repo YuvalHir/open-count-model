@@ -1,0 +1,98 @@
+{
+ "snapshot": "20261029T214918Z",
+ "regular_boxes": 12018,
+ "envelope_rows": 908,
+ "registered_regular": 7331981,
+ "voters_regular": 5264684,
+ "voters_envelopes": 451981,
+ "voters_total": 5716665,
+ "valid_total": 5690778,
+ "invalid_total": 25887,
+ "turnout_pct_incl_envelopes": 77.97,
+ "lists": {
+  "מחל": {
+   "votes": 1167458,
+   "share_pct": 20.515,
+   "seats": 27,
+   "announced": 27
+  },
+  "דרך": {
+   "votes": 913502,
+   "share_pct": 16.052,
+   "seats": 21,
+   "announced": 21
+  },
+  "רק": {
+   "votes": 531414,
+   "share_pct": 9.338,
+   "seats": 12,
+   "announced": 12
+  },
+  "ודם": {
+   "votes": 500147,
+   "share_pct": 8.789,
+   "seats": 11,
+   "announced": 11
+  },
+  "אמת": {
+   "votes": 366352,
+   "share_pct": 6.438,
+   "seats": 8,
+   "announced": 8
+  },
+  "ל": {
+   "votes": 337413,
+   "share_pct": 5.929,
+   "seats": 7,
+   "announced": 7
+  },
+  "עם": {
+   "votes": 337253,
+   "share_pct": 5.926,
+   "seats": 8,
+   "announced": 8
+  },
+  "ב": {
+   "votes": 326624,
+   "share_pct": 5.74,
+   "seats": 7,
+   "announced": 7
+  },
+  "ג": {
+   "votes": 312604,
+   "share_pct": 5.493,
+   "seats": 7,
+   "announced": 7
+  },
+  "שס": {
+   "votes": 299506,
+   "share_pct": 5.263,
+   "seats": 6,
+   "announced": 6
+  },
+  "ט": {
+   "votes": 290451,
+   "share_pct": 5.104,
+   "seats": 6,
+   "announced": 6
+  },
+  "די": {
+   "votes": 154950,
+   "share_pct": 2.723,
+   "seats": 0,
+   "announced": null
+  },
+  "ך": {
+   "votes": 95663,
+   "share_pct": 1.681,
+   "seats": 0,
+   "announced": null
+  }
+ },
+ "matches_announced": true,
+ "announced_sources": [
+  "https://en.globes.co.il/en/article-count-complete-likud-has-27-knesset-seats-shas-drops-to-6-1001561412",
+  "https://www.calcalistech.com/ctechnews/article/bkkzoebtgl",
+  "https://www.i24news.tv/he/news/israel-elections-2026/artc-81364d4f"
+ ]
+}

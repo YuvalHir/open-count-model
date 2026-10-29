@@ -1,7 +1,7 @@
-"""K26 exit polls vs OUR provisional count (results/live_forecast.json, envelopes assumed). NOT official, NOT the preregistered scoring."""
+"""K26 exit polls vs OUR calculation of the completed count (results/k26_count.json, from the CEC file; matches the seat numbers announced 29.10). Official CEC publication is due 4.11.2026: NOT official, NOT the preregistered scoring."""
 import csv, json, collections
 M = {"Likud": "מחל", "Yashar": "דרך", "Together": "רק", "Joint List": "ודם", "Ra'am": "עם", "Democrats": "אמת", "Yisrael Beiteinu": "ל", "Otzma": "ב", "Shas": "שס", "UTJ": "ג", "Religious Zionism": "ט"}
-LF = json.load(open("results/live_forecast.json"))["lists"]; fin = {k: round(v["seats_median"]) for k, v in LF.items()}
+LF = json.load(open("results/k26_count.json"))["lists"]; fin = {k: v["seats"] for k, v in LF.items() if v["seats"]}
 P = collections.defaultdict(dict)
 for r in csv.DictReader(open("data/tv_exit_polls/tv_exit_polls.csv", encoding="utf-8")):
     if r["election"] == "26" and r["complete"] == "full": P[r["channel"]][M[r["list"]]] = int(r["seats"])
@@ -13,4 +13,4 @@ for ch, p in P.items():
 with open("results/tv_k26_provisional.csv", "w", newline="") as f:
     w = csv.DictWriter(f, list(rows[0])); w.writeheader(); w.writerows(rows)
 for r in rows: print(r)
-print("provisional seats (our count, envelopes assumed):", sum(fin.values()), fin)
+print("seats (our calculation of the completed count):", sum(fin.values()), fin)

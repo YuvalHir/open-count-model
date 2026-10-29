@@ -23,8 +23,8 @@ l = pd.read_csv(R + "loo.csv")
 add("matching", "בחירת פרמטרים לפי כנסות אחרות (עזיבת בחירות אחת)", "מנדטים שגויים", l.default_held_seats.mean(), l.held_seats.mean(), "מוחזק בחוץ: כל כנסת בתורה", "אין יתרון על ברירת המחדל")
 add("envelopes", "קולות מעטפות חיצוניות: נטייה היסטורית מול 'כמו הקלפיות הרגילות'", "טעות בנתח הקולות", 0.565, 0.531, "מוחזק בחוץ: כנסת 25", "מפספס שינויים חדשים; מקור: results/envelope_backtest.txt")
 t = pd.read_csv(R + "turnout_k26.csv"); t = t[t.order == "random"].groupby(["size_from_turnout", "turnout_feature"]).share_mae_pp.mean()
-add("turnout", "גודל קלפי מקובץ ההצבעה ב-20:00", "טעות בנתח הקולות", t[(0, 0)], t[(1, 0)], "פיתוח: כנסת 26 (זמנית)")
-add("turnout", "אחוז הצבעה כמשתנה במודל", "טעות בנתח הקולות", t[(0, 0)], t[(0, 1)], "פיתוח: כנסת 26 (זמנית)")
+add("turnout", "גודל קלפי מקובץ ההצבעה ב-20:00", "טעות בנתח הקולות", t[(0, 0)], t[(1, 0)], "פיתוח: כנסת 26")
+add("turnout", "אחוז הצבעה כמשתנה במודל", "טעות בנתח הקולות", t[(0, 0)], t[(0, 1)], "פיתוח: כנסת 26")
 d = pd.read_csv(R + "exitpoll_dash.csv"); d = d[d["T"].isin([22, 23, 24, 25]) & (d.n == 120) & (d.m == 200)]
 def v(des, hard): 
     q = d[(d.design == des)]; q = q[(q.pat == "shy") & (q.lv == 10) & (q.nr == "nr_refuse")] if hard else q[(q.pat == "none") & (q.nr == "none")]
