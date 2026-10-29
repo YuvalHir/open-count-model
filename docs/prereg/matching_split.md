@@ -23,6 +23,6 @@ New strategies (same decision rule, same development and target pairs):
 ## Results (29.10.2026, results/matching_split.csv and results/matching_cum.csv)
 - `split`: match rate 92.03% -> 92.35% (K22-26 mean); K25->K26 75.75% -> 76.07%; no projection change. Not better.
 - `cum`: match rate falls (84.5% mean); projection worse in most pairs. Worse.
-- `fillcum`: match rate rises to 96.1% (mean), but projection is worse: K22-26 mean share error at 20% counted 0.18 -> 0.22 pp, seats 1.70 -> 1.85; on K26 share error 0.13 -> 0.34 pp. Decision rule: not better. Worse on the target pair.
+- `fillcum`: match rate rises to 96.1% (mean; K25->K26: 75.8% -> 89.4%), but projection is worse: K22-26 mean share error at 20% counted 0.18 -> 0.22 pp, seats 1.70 -> 1.85; on K26 share error 0.13 -> 0.34 pp. Decision rule: not better. Worse on the target pair.
 - Reading: the extra matches are mostly wrong pairs. A wrong matched profile hurts more than falling back to the locality profile. The cumulative-size alignment assumes boxes keep their order inside a locality; K26 numbering does not support that. Negative result kept. `fill` stays the default.
 - Unresolved: the 76% is a rate of K26 votes that have a plausible K25 partner by number and size. Better evidence for pairing (addresses of K25 and K26 together with a trust rule) was tried before (site) and gave no K26 gain.
