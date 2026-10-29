@@ -527,5 +527,12 @@ python3 docs/site/build.py</pre>
 <p>דף זה נבנה מתוצאות המאגר על ידי הסקריפט האחרון. תיעוד נוסף במאגר: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
 <footer>הנתונים הגולמיים הם של ועדת הבחירות המרכזית (https://votes26.bechirot.gov.il, https://data.gov.il). פרויקט עצמאי, אינו מזוהה עם הוועדה ואינו מאושר על ידה. המודל אינו סקר ואינו תוצאה רשמית.</footer>
 <script>{DASH_JS}</script></main></div></body></html>"""
+import sys; sys.path.insert(0, "docs/site")
+import ux
+_tvA = _tvc[_tvc.scored == "yes"]
+PAGE = ux.transform(PAGE, f"{OFF} {CALC}").replace("@@TVCHART@@", ux.tv_chart(_tvA, SIM_NONE, SIM_HARD))
+open("docs/site/style.css", "a").write("") if False else None
+_css = open("docs/site/style.css", encoding="utf8").read()
+if "/*UX*/" not in _css: open("docs/site/style.css", "a", encoding="utf8").write("/*UX*/" + ux.CSS)
 open("docs/site/index.html", "w", encoding="utf8").write(PAGE)
 print("ok", len(PAGE))
