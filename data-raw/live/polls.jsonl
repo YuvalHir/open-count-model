@@ -1336,3 +1336,29 @@
 {"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:19:40.028Z"}
 {"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:20:40.505Z"}
 {"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:20:40.505Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:21:40.985Z"}
+{"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:21:40.985Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:22:53.726Z"}
+{"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:22:53.726Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:23:55.891Z"}
+{"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:23:55.891Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:24:56.457Z"}
+{"content_length": "153433", "file": "expc", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:24:56.457Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:25:57.232Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:25:57.232Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:26:58.936Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:26:58.936Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:28:10.151Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:28:10.151Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:29:10.881Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:29:10.881Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:30:12.196Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:30:12.196Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:31:13.318Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:31:13.318Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:32:14.486Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:32:14.486Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T23:33:25.948Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:33:25.948Z"}
+{"content_length": "1825336", "file": "expb", "last_modified": "Thu, 29 Oct 2026 21:56:11 GMT", "status": 200, "t": "2026-10-29T23:34:27.076Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T23:34:27.076Z"}
