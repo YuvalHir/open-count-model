@@ -4,7 +4,7 @@ Open-source model that predicts final Knesset seat counts from the order in whic
 stations (קלפיות) are published during the official count, plus the collector that records that
 order. Code: MIT. Data: official Central Elections Committee (CEC) files, attributed below.
 
-Status: early. Collector works; model is being built. See `docs/` for the plan and research notes.
+Status: early. Collector works; v1 model, seat allocation and a simulated-order backtest are in (see `docs/method.md`, `docs/backtest.md`).
 
 ## Why
 
