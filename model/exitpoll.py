@@ -25,8 +25,11 @@ from .project import build_frame
 from .backtest import AGREEMENTS, seats_of
 
 NS = [10, 15, 20, 30, 40, 50, 60, 80, 100, 150]
-DESIGNS = ["srs_ratio", "pps_ratio", "strat_ratio", "strat_prior", "strat_prior_pastvote"]
-SCEN = ["none", "noise10", "shy15", "refuse20", "noise10_shy15"]
+DESIGNS = ["srs_ratio", "pps_ratio", "strat_ratio", "strat_prior", "strat_prior_pastvote",
+           "strat_prior_ps", "strat_prior_bk", "strat_ridge", "strat_greg", "strat_greg_ps_bk"]
+SCEN = ["none", "noise10", "shy15", "refuse20", "noise10_shy15", "hard_nr", "place_refuse", "hard_both"]
+HAREDI = {"ג", "שס"}; ARAB = {"ודעם", "עם", "ד", "ום", "ודם"}   # list letters, K22-26
+PLACE_REFUSE = 0.5   # assumed: share of Haredi-/Arab-profile places that do not let interviewers in
 M_BASE = 100
 
 def prepare(T):
@@ -49,9 +52,13 @@ def prepare(T):
     pc1 = np.linalg.svd(Z, full_matrices=False)[2][0]
     order = np.argsort(Z @ pc1)
     truth = (S * w[:, None]).sum(0) / w.sum()
+    hs = sum(X[:, j] for j, l in enumerate(letters) if l in HAREDI)
+    ar = sum(X[:, j] for j, l in enumerate(letters) if l in ARAB)
+    grp = np.where(hs > 0.5, 1, np.where(ar > 0.5, 2, 0))   # profile-based groups from the PREVIOUS election: 0 other, 1 Haredi-profile, 2 Arab-profile
+    F = frame[xc].values.astype(float)
     # size known BEFORE election day: registered voters x last election's turnout (not the actual valid votes)
     sz = (frame.registered * frame.x_turn.clip(0.2, 1.0)).values.astype(float)
-    return dict(T=T, frame=frame, letters=letters, S=S, X=X, w=w, sz=sz, order=order, truth=truth)
+    return dict(T=T, frame=frame, letters=letters, S=S, X=X, w=w, sz=sz, order=order, truth=truth, grp=grp, F=F)
 
 def lie(P, letters, scen, shy):
     """Reported-answer probabilities given true-vote probabilities P (rows = places). Assumed behaviour."""
@@ -65,6 +72,10 @@ def lie(P, letters, scen, shy):
         P[:, j] -= moved; P += moved[:, None] * rest
     if scen == "refuse20":                        # the largest list's voters answer 20% less often
         P[:, j] *= 0.8
+    if scen in ("hard_nr", "hard_both"):          # Haredi-list voters answer half as often, Arab-list voters 40% less often
+        for k, l in enumerate(letters):
+            if l in HAREDI: P[:, k] *= 0.5
+            elif l in ARAB: P[:, k] *= 0.6
     return P / P.sum(1, keepdims=True)
 
 def pick(D, design, n, rng):
@@ -88,7 +99,9 @@ def estimate(D, design, idx, wt, m, rng, Q, Qx):
     if design.endswith("ratio"):
         return th
     Xbar = (D["X"] * D["sz"][:, None]).sum(0) / D["sz"].sum()     # full-population prior profile (known)
-    if design == "strat_prior":
+    if design in ("strat_prior_ps", "strat_greg_ps_bk", "strat_greg", "strat_ridge"):
+        return _model_est(D, design, idx, wt, C, Xbar)
+    if design in ("strat_prior", "strat_prior_bk"):
         th = Xbar + ((C - D["X"][idx]) * wt[:, None]).sum(0) / wt.sum()
     else:                                                  # also ask "how did you vote last time" and rescale
         Cx = rng.multinomial(m, Qx[idx]) / m
@@ -99,21 +112,77 @@ def estimate(D, design, idx, wt, m, rng, Q, Qx):
     th = np.clip(th, 0, None)
     return th / th.sum()
 
-def run(T, reps=300):
+def _model_est(D, design, idx, wt, C, Xbar):
+    """Model-assisted estimators. ps = post-stratified on the profile groups (population sizes known beforehand)."""
+    sz, grp = D["sz"], D["grp"]
+    if design == "strat_prior_ps":
+        Pall = D["X"]
+    else:   # ridge of the reported shares on the previous-election profile of the sampled places (same ridge as the count model)
+        from .project import ridge_fit_predict
+        Pall = ridge_fit_predict(D["F"][idx], C, np.sqrt(wt), D["F"], 5.0)
+        if design == "strat_ridge":
+            th = (Pall * sz[:, None]).sum(0) / sz.sum()
+            return th / th.sum()
+    res = C - Pall[idx]
+    if design == "strat_greg":
+        th = (Pall * sz[:, None]).sum(0) / sz.sum() + (res * wt[:, None]).sum(0) / wt.sum()
+    else:
+        th = np.zeros(C.shape[1])
+        for g in (0, 1, 2):
+            m_ = grp == g
+            if not m_.any(): continue
+            pg = sz[m_].sum() / sz.sum()
+            base = (Pall[m_] * sz[m_][:, None]).sum(0) / sz[m_].sum()
+            sel = grp[idx] == g
+            corr = (res[sel] * wt[sel][:, None]).sum(0) / wt[sel].sum() if sel.any() else 0
+            th += pg * (base + corr)
+    th = np.clip(th, 0, None)
+    return th / th.sum()
+
+def _refuse(D, idx, wt, design, scen, rng):
+    """Some Haredi-/Arab-profile places turn the interviewers away (assumption). _bk designs try the neighbours
+    in the profile order instead; the others simply lose the place."""
+    g = D["grp"]
+    if design.endswith("_bk"):
+        pos = np.empty(len(D["order"]), int); pos[D["order"]] = np.arange(len(pos))
+        out = []
+        for i in idx:
+            cand = [i]
+            for d in (1, -1, 2, -2, 3, -3):
+                cand.append(D["order"][(pos[i] + d) % len(pos)])
+            for c in cand:
+                if g[c] == 0 or rng.random() >= PLACE_REFUSE:
+                    out.append(c); break
+        idx = np.array(out)
+    else:
+        keep = (g[idx] == 0) | (rng.random(len(idx)) >= PLACE_REFUSE)
+        idx, wt = idx[keep], wt[keep]
+        if len(idx) == 0: idx, wt = None, None
+    return idx, (np.ones(len(idx)) if idx is not None else None)
+
+def run(T, reps=300, scen=None):
     D = prepare(T); letters = D["letters"]
     ag = AGREEMENTS.get(T, []); yc = ["y_" + l for l in letters]
     shy = letters[int(np.argmax(D["truth"][:-1]))]
     tv = dict(zip(yc, D["truth"] * 1e6)); tseats = seats_of(tv, yc, ag)
     rows = []
-    cells = [(s, M_BASE, n) for s in SCEN for n in NS] + [("none", m, n) for m in (50, 200) for n in NS]
+    scen = scen or SCEN
+    cells = [(s, M_BASE, n) for s in scen for n in NS] + ([("none", m, n) for m in (50, 200) for n in NS] if "none" in scen else [])
     for sc, m, n in cells:
         Q = lie(D["S"], letters, sc, shy); Qx = lie(D["X"], letters, sc, shy)
         for di, design in enumerate(DESIGNS):
+            if m != M_BASE and design != "strat_prior":     # interviews-per-place grid only for the reference design
+                continue
             rng = np.random.default_rng([T, SCEN.index(sc), m, n, di])
             err = np.empty((reps, len(letters))); sm = np.empty(reps)
             for r in range(reps):
                 idx, wt = pick(D, design, n, rng)
-                th = estimate(D, design, idx, wt, m, rng, Q, Qx)
+                if sc in ("place_refuse", "hard_both"):
+                    idx, wt = _refuse(D, idx, wt, design, sc, rng)
+                if idx is None or len(idx) == 0:
+                    th = (D["X"] * D["sz"][:, None]).sum(0) / D["sz"].sum()
+                else:
+                    th = estimate(D, design, idx, wt, m, rng, Q, Qx)
                 err[r] = th - D["truth"]
                 s = seats_of(dict(zip(yc, th * 1e6)), yc, ag)
                 keys = set(s) | set(tseats)
@@ -136,13 +205,47 @@ def select_sample(T, n=60, seed=0):
     out["prior_rank_in_order"] = [int(np.where(D["order"] == i)[0][0]) for i in idx]
     return out.sort_values("prior_rank_in_order").reset_index(drop=True).drop(columns="valid")
 
+def envelopes():
+    """Votes cast in external envelopes (code 9999: soldiers, diplomats, prisoners, hospitals...) are in no box sample.
+    How big is the miss, and does adding the PREVIOUS election's envelope profile help? Uses actual K22-25 results."""
+    rows = []
+    for T in (22, 23, 24, 25):
+        D = prepare(T); letters = D["letters"]; ag = AGREEMENTS.get(T, []); yc = ["y_" + l for l in letters]
+        cur, prv = load_history(T), load_history(T - 1)
+        def votes(df, env):
+            d = df[df.is_envelope == env]; pc = [c for c in df.attrs["party_cols"]]
+            v = np.array([d[l].sum() if (l != "other" and l in d) else 0.0 for l in letters])
+            v[-1] = d.valid.sum() - v[:-1].sum(); return v
+        reg, env = votes(cur, False), votes(cur, True)
+        penv_prev, preg_prev = votes(prv, True), votes(prv, False)
+        e_share = env.sum() / (reg.sum() + env.sum()); e_prev = penv_prev.sum() / (penv_prev.sum() + preg_prev.sum())
+        full = (reg + env) / (reg + env).sum(); boxes = reg / reg.sum()
+        corr = (1 - e_prev) * boxes + e_prev * penv_prev / penv_prev.sum()
+        def seats(sh): return seats_of(dict(zip(yc, sh * 1e6)), yc, ag)
+        def mis(a, b):
+            ka = set(a) | set(b); return sum(abs(a.get(k, 0) - b.get(k, 0)) for k in ka) / 2
+        sf = seats(full)
+        rows.append(dict(T=T, envelope_share_pct=100 * e_share, prev_envelope_share_pct=100 * e_prev,
+                         boxes_only_mae_pp=100 * np.abs(boxes - full).mean(), boxes_only_max_pp=100 * np.abs(boxes - full).max(),
+                         boxes_only_seats_off=mis(seats(boxes), sf),
+                         with_prev_envelopes_mae_pp=100 * np.abs(corr - full).mean(),
+                         with_prev_envelopes_max_pp=100 * np.abs(corr - full).max(),
+                         with_prev_envelopes_seats_off=mis(seats(corr), sf)))
+    return pd.DataFrame(rows)
+
 def main():
     from multiprocessing import Pool
     reps = int(sys.argv[1]) if len(sys.argv) > 1 else 300
+    sub = sys.argv[2].split(",") if len(sys.argv) > 2 else None     # run scenarios in parts: python -m model.exitpoll 300 none,noise10 part1.csv
+    if len(sys.argv) > 3:
+        with Pool(5) as p:
+            pd.concat(p.starmap(run, [(T, reps, sub) for T in (22, 23, 24, 25, 26)])).to_csv(sys.argv[3], index=False)
+        return
     with Pool(5) as p:
-        dfs = p.starmap(run, [(T, reps) for T in (22, 23, 24, 25, 26)])
+        dfs = p.starmap(run, [(T, reps, sub) for T in (22, 23, 24, 25, 26)])
     out = pd.concat(dfs); os.makedirs("results", exist_ok=True)
     out.to_csv("results/exitpoll.csv", index=False)
+    envelopes().to_csv("results/exitpoll_envelopes.csv", index=False)
     select_sample(26, 60, 26).to_csv("results/exitpoll_example_sample_k26.csv", index=False)
     print(out[(out["T"].isin([22, 23, 24, 25])) & (out.m == M_BASE)].groupby(["scenario", "design", "n_places"])[["share_mae_pp", "seats_misallocated"]].mean().round(2).unstack("n_places").to_string())
 
