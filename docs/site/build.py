@@ -530,11 +530,13 @@ python3 docs/site/build.py</pre>
 import sys; sys.path.insert(0, "docs/site")
 import ux, home
 _tvA = _tvc[_tvc.scored == "yes"]
+PAGE = PAGE.replace("<footer>", home.research_sections(dict(CALC=CALC)) + "<footer>", 1)
 PAGE = ux.transform(PAGE, f"{OFF} {CALC}").replace("@@TVCHART@@", ux.tv_chart(_tvA, SIM_NONE, SIM_HARD))
 PAGE = home.wrap(PAGE, dict(g=g, tvA=_tvA, tv_mean_a=TV_MEAN_A, bu=_bu, dd=_dd, OFF=OFF, CALC=CALC))
 open("docs/site/style.css", "a").write("") if False else None
 _css = open("docs/site/style.css", encoding="utf8").read()
 if "/*UX*/" not in _css: open("docs/site/style.css", "a", encoding="utf8").write("/*UX*/" + ux.CSS)
-if "/*HM*/" not in _css: open("docs/site/style.css", "a", encoding="utf8").write("/*HM*/" + home.CSS)
+if "/*HM*/" in _css: _css = _css[:_css.index("/*HM*/")]
+open("docs/site/style.css", "w", encoding="utf8").write(_css + "/*HM*/" + home.CSS)
 open("docs/site/index.html", "w", encoding="utf8").write(PAGE)
 print("ok", len(PAGE))

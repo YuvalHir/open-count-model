@@ -1,6 +1,6 @@
 """UX post-processing for the /model/ page: plain summary, sticky nav, collapsible sections, schematic SVGs."""
 import re
-SHORT = {1: "הבעיה", 2: "הנתונים", 3: "השיטה", 4: "מבחן בדיעבד", 5: "מגזרים ומעטפות", 6: "תחזית נוכחית", 7: "מגבלות", 8: "סקר יציאה", 9: "סקר יציאה ב", 10: "טלוויזיה מול תוצאות", 11: "למה פספסו", 12: "קלפיות מול ראיונות", 13: "דשבורד", 14: "מודל אידיאלי", 15: "שחזור"}
+SHORT = {1: "הבעיה", 2: "הנתונים", 3: "השיטה", 4: "מבחן בדיעבד", 5: "מגזרים ומעטפות", 6: "תחזית נוכחית", 7: "מגבלות", 8: "סקר יציאה", 9: "סקר יציאה ב", 10: "טלוויזיה מול תוצאות", 11: "למה פספסו", 12: "קלפיות מול ראיונות", 13: "דשבורד", 14: "מודל אידיאלי", 15: "שחזור", 16: "מונטה קרלו: שקרנים", 17: "כל הניסויים"}
 OPEN = {13}
 def svg_wrap(w, h, inner, cap):
     return f'<figure class="fig"><svg viewBox="0 0 {w} {h}" role="img" dir="rtl" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-width:520px">{inner}</svg><figcaption>{cap}</figcaption></figure>'

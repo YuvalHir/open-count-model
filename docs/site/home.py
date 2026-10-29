@@ -62,24 +62,29 @@ def build(ctx):
         f"כמה מנדטים שגויים, בממוצע על כנסות 22 עד 25. הטלוויזיה: סקרי היציאה בפועל מול התוצאות הסופיות של הוועדה. המודל: סימולציה על נתוני פיתוח. ההנחות הקשות הן הנחה שלנו, לא מדידה.",
         "<p>דבר אחד כן ברור מהנתונים: הטלוויזיה נתנה למפלגות הערביות פחות מדי מנדטים בכל חמש הבחירות (בממוצע כ-1.2 מנדטים), והטעויות הגדולות באו מרשימות קרובות לאחוז החסימה. אין בכך טענה שנהיה מדויקים יותר.</p>",
         OFF + " " + CALC, "s10")
-    # Q4: mini dashboard (precomputed, 120 boxes x 200 interviews, mean K22-25)
+    # Q4: Monte Carlo lying (pre-registered lies-mc-v1)
+    import pandas as pd
+    L = pd.read_csv("results/lies_mc.csv"); LM = pd.read_csv("results/lies_mc_mild_posthoc.csv")
     tab = {}
-    for des in ("pps_ratio", "strat_greg_ps_bk"):
-        for li, (pat, lv) in enumerate([("none", 0), ("shy", 5), ("shy", 10), ("shy", 20)]):
-            for ni, nr in enumerate(("none", "nr", "nr_refuse")):
-                tab[f"{des[0]}{li}{ni}"] = round(sd(des, pat, lv, nr), 1)
-    dash = f'''<div class="hm-ctl"><label>כמה מצביעי הרשימה הגדולה מסתירים?<select id="mq_l"><option value="0">אף אחד</option><option value="1">5%</option><option value="2" selected>10%</option><option value="3">20%</option></select></label>
-<label>מי לא עונה?<select id="mq_n"><option value="0">כולם עונים</option><option value="1">חרדים וערבים עונים פחות</option><option value="2" selected>גם קלפיות חרדיות וערביות מסרבות</option></select></label></div>
-<div id="mq_out"></div>{legend([("הטלוויזיה (בפועל)", COL['tv']), ("שיטה רגילה", COL['raw']), ("המודל שלנו", COL['model'])])}'''
+    for key, df, reg in (("A", L, "all"), ("R1", L, "R1"), ("R2", L, "R2"), ("R3", L, "R3"), ("M", LM, "all")):
+        for (n, m) in ((60, 100), (120, 200)):
+            for des, dk in (("pps_ratio", "p"), ("strat_greg_ps_bk", "s")):
+                r = df[(df.n == n) & (df.regime == reg) & (df.design == des)].iloc[0]
+                tab[f"{key}{n}{dk}"] = [float(r["median"]), float(r["p5"]), float(r["p95"]), float(r["p_above_tv"])]
+    dash = f'''<div class="hm-ctl"><label>איך משקרים?<select id="mq_r"><option value="A">לא יודעים: כל האפשרויות מעורבבות</option><option value="R1">מתואמים: כל השקרנים אומרים אותו דבר</option><option value="R2">מפוזרים: כל אחד אומר משהו אחר</option><option value="R3">לא עקביים: משקרים בהווה ולא בעבר</option><option value="M">פחות שקרנים (בדיקת רגישות, לא נקבעה מראש)</option></select></label>
+<label>גודל המדגם<select id="mq_s"><option value="120">120 קלפיות, 200 ראיונות בכל אחת</option><option value="60">60 קלפיות, 100 ראיונות בכל אחת</option></select></label></div>
+<div id="mq_out"></div>{legend([("הטלוויזיה (ממוצע בפועל)", COL['tv']), ("שיטה רגילה", COL['raw']), ("המודל שלנו", COL['model'])])}'''
     js = "const MQ=" + json.dumps(tab) + ";const MQTV=" + f"{TVM:.1f}" + ";" + '''
-function bar(v,c,t){const w=Math.min(100,v*100/16);return '<div class="mq-row"><span class="mq-t">'+t+'</span><div class="mq-b"><i style="width:'+w+'%;background:'+c+'"></i></div><b>'+v.toFixed(1)+'</b></div>'}
-function mqr(){const l=document.getElementById('mq_l').value,n=document.getElementById('mq_n').value;
-document.getElementById('mq_out').innerHTML=bar(MQTV,'#ffd166','הטלוויזיה')+bar(MQ['p'+l+n],'#6b7694','שיטה רגילה')+bar(MQ['s'+l+n],'#2fd3c4','המודל שלנו')}
-['mq_l','mq_n'].forEach(i=>document.getElementById(i).addEventListener('change',mqr));mqr();'''
+function band(v,c,t,tv){const S=18,lo=v[1]/S*100,wd=Math.max(1.5,(v[2]-v[1])/S*100),md=v[0]/S*100;
+return '<div class="mq-row2"><div class="mq-t2">'+t+'</div><div class="mq-b"><i style="right:'+lo+'%;width:'+wd+'%;background:'+c+';opacity:.45"></i><i style="right:'+md+'%;width:4px;background:'+c+'"></i>'+(tv?'':'<u style="right:'+(MQTV/S*100)+'%"></u>')+'</div><div class="mq-n">'+(tv?'<b>'+v[0].toFixed(1)+'</b> ממוצע בפועל, כנסות 22 עד 25':'<b>'+v[0].toFixed(0)+'</b> חציון, טווח '+v[1].toFixed(0)+' עד '+v[2].toFixed(0)+'. מעל ממוצע הטלוויזיה ב-'+Math.round(v[3]*100)+'% מהריצות')+'</div></div>'}
+function mqr(){const r=document.getElementById('mq_r').value,n=document.getElementById('mq_s').value;
+document.getElementById('mq_out').innerHTML=band([MQTV,MQTV,MQTV],'#ffd166','הטלוויזיה',1)+band(MQ[r+n+'p'],'#6b7694','שיטה רגילה',0)+band(MQ[r+n+'s'],'#2fd3c4','המודל שלנו',0)}
+['mq_r','mq_s'].forEach(i=>document.getElementById(i).addEventListener('change',mqr));mqr();'''
+    A = lambda n, k: tab[f"A{n}{k}"]
     s4 = screen("q4", "מה קורה אם אנשים משקרים?",
-        f"בחרו כמה אנשים מסתירים למי הצביעו ומי לא עונה, וראו כמה מנדטים טועים. בלי בעיות המודל שלנו טועה בכ-{ideal0:.1f} מנדטים (שיטה רגילה: {plain0:.1f}). ככל שיש יותר הסתרה וסירוב, הטעות גדלה, והשיטה הרגילה נפגעת יותר.",
-        dash, f"כמה מנדטים שגויים, 120 קלפיות ו-200 ראיונות, ממוצע על כנסות 22 עד 25 (סימולציה). שקר ואי מענה הם הנחות שלנו, לא מדידה. שיטה רגילה: הגרלת קלפיות לפי גודל, בלי שימוש בנתוני העבר. הטלוויזיה: סקרי היציאה בפועל.",
-        "<p>הטבלה המלאה לפי בחירה, ועוד אפשרויות (גודל מדגם, שיטות נוספות), נמצאת בדשבורד לחוקרים.</p>", OFF + " " + CALC, "s13")
+        f"אף אחד לא יודע איך משקרים ולמי, ולכן לא בחרנו תרחיש אחד. בכל אחת מ-300 ריצות לכל בחירות הגרלנו מי משקר, כמה, ולמי הם אומרים שהצביעו. עם 120 קלפיות ו-200 ראיונות, המודל שלנו טעה בחציון ב-{A(120,'s')[0]:.0f} מנדטים (טווח 90% מ-{A(120,'s')[1]:.0f} עד {A(120,'s')[2]:.0f}). השיטה הרגילה: {A(120,'p')[0]:.0f} (מ-{A(120,'p')[1]:.0f} עד {A(120,'p')[2]:.0f}).",
+        dash, f"הפס הבהיר הוא הטווח שבו נפלו 90% מהריצות, והקו הכהה הוא החציון. הקו האפור הוא ממוצע הטלוויזיה ({TVM:.1f}). אלה הנחות שלנו על שקר, לא מדידה, וההנחה הראשית קשה: בממוצע כ-3.7 רשימות משקרות והן מסתירות כ-12% ממצביעיהן. שיטה רגילה: הגרלת קלפיות לפי גודל, בלי נתוני עבר.",
+        "<p>מה כבר היה מונטה קרלו קודם: בחירת הקלפיות, הנשאלים ומי מסרב. מה היה קבוע: דפוס השקר (הרשימה הגדולה מסתירה 5, 10 או 20%) ושיעורי אי המענה. עכשיו גם דפוס השקר מוגרל.</p><p>ממצא שלילי: כששקרנים עקביים (גם בהווה וגם בעבר), שקלול לפי 'למי הצבעת בפעם הקודמת' מחמיר את המצב. כששקרנים לא עקביים, המודל לא מרוויח הרבה מכך.</p>", OFF + " " + CALC, "s16")
     # Q5
     wc20, wr20 = g('low_likud_first', 'ridge', .20), g('low_likud_first', 'raw_counted', .20)
     q5 = bars([("סדר אקראי", [(g('random', 'raw_counted', .20), COL['raw']), (g('random', 'ridge', .20), COL['model'])]),
@@ -90,9 +95,22 @@ document.getElementById('mq_out').innerHTML=bar(MQTV,'#ffd166','הטלוויזי
         f"כמה מנדטים שגויים כשנספרו 20% מהקלפיות. סדר הגעה מדומה. בשני המקרים המודל טוב יותר מהסיכום הגולמי, אבל במקרה הגרוע הוא עדיין רחוק מאוד.",
         "<ul><li>כנסות 22 עד 25 הן נתוני פיתוח. כנסת 26 עדיין לא תוצאה סופית ואינה בדיקה עצמאית.</li><li>התוצאות של המודל אינן תוצאה רשמית. רק ועדת הבחירות המרכזית מפרסמת תוצאות רשמיות.</li><li>הנחות על שקר ואי מענה הן שלנו, לא מדידה.</li></ul>",
         CALC, "s7")
-    tiles = [("q1", "1", "איך מנבאים את התוצאה מהספירה החלקית?"), ("q2", "2", "כמה קלפיות צריך למדגם יציאה?"), ("q3", "3", "האם אפשר לנצח את הטלוויזיה?"), ("q4", "4", "מה קורה אם אנשים משקרים?"), ("q5", "5", "מה לא הוכח?")]
+    EX = pd.read_csv("results/experiments.csv")
+    ccol = {"better": "#2fd3c4", "none": "#6b7694", "worse": "#ff7a90"}; ctxt = {"better": "שיפור", "none": "אין השפעה", "worse": "החמרה"}
+    rows6 = ""
+    for _, r in EX.sort_values("change_pct").iterrows():
+        w = min(100, abs(r.change_pct) * 1.4); smaller = 'קטנה' if r.change_pct < 0 else 'גדלה'
+        rows6 += f'<div class="ex-row"><div class="ex-t">{r.tried}</div><div class="ex-bar"><i style="width:{max(w,2):.0f}%;background:{ccol[r.verdict]}"></i></div><div class="ex-n" style="color:{ccol[r.verdict]}"><b>{ctxt[r.verdict]}</b>: הטעות {smaller} ב-{abs(r.change_pct):.0f}%</div></div>'
+    nb, nn, nw = (EX.verdict == "better").sum(), (EX.verdict == "none").sum(), (EX.verdict == "worse").sum()
+    s6 = screen("q6", "מה ניסינו, מה שיפר ומה החמיר?",
+        f"ניסינו {len(EX)} דברים. {nb} שיפרו, {nn} לא שינו, ו-{nw} החמירו. הדוגמה הבולטת: שיפור ההתאמה בין קלפיות (מ-83% ל-92% מהקולות) לא שיפר כמעט את התחזית.",
+        '<div class="ex-list">' + rows6 + '</div>' + legend([("שיפור", ccol['better']), ("אין השפעה", ccol['none']), ("החמרה", ccol['worse'])]),
+        "השינוי באחוזים בטעות, לעומת הגרסה הבסיסית של אותו ניסוי. סימון: שיפור או החמרה של 5% ויותר; פחות מזה נחשב 'אין השפעה'. הכלל נקבע אחרי שהניסויים הרצו, והמספרים מהמאגר (results/experiments.csv). בכל שורה בהרחבה מסומן אם זה נתוני פיתוח או מוחזק בחוץ.",
+        "<table class='ex-tab'><tr><th>ניסוי</th><th>לפני</th><th>אחרי</th><th>נתונים</th></tr>" + "".join(f"<tr><td>{r.tried}<br><small>{r.metric}{(' · ' + r.note) if isinstance(r.note, str) else ''}</small></td><td>{r.baseline:g}</td><td>{r.variant:g}</td><td>{r.data}</td></tr>" for _, r in EX.iterrows()) + "</table><p>ניסויים שנכשלו נשארים בטבלה. כנסות 22 עד 25 הן נתוני פיתוח. כנסת 26 אינה בדיקה עצמאית.</p>",
+        CALC, "s17")
+    tiles = [("q1", "1", "איך מנבאים את התוצאה מהספירה החלקית?"), ("q2", "2", "כמה קלפיות צריך למדגם יציאה?"), ("q3", "3", "האם אפשר לנצח את הטלוויזיה?"), ("q4", "4", "מה קורה אם אנשים משקרים?"), ("q5", "5", "מה לא הוכח?"), ("q6", "6", "מה ניסינו, מה שיפר ומה החמיר?")]
     home = '<section class="screen" id="home"><h1 class="hm-h">הספירה החלקית מטעה. אנחנו בונים מודל פתוח שמתקן אותה.</h1><p class="hm-sub0">בחרו שאלה:</p><div class="hm-tiles">' + "".join(f'<a class="hm-tile" href="#{i}"><b>{n}</b><span>{t}</span></a>' for i, n, t in tiles) + '</div><a class="hm-res" href="#research">לחוקרים: שיטות, נתונים, שחזור ←</a>@@BANNER@@</section>'
-    return home + s1 + s2 + s3 + s4 + s5, js
+    return home + s1 + s2 + s3 + s4 + s5 + s6, js
 
 CSS = """
 .screen{display:none}.screen.on{display:block}
@@ -112,6 +130,9 @@ CSS = """
 .hm-ctl{display:grid;gap:10px;margin:0 4px 14px}.hm-ctl label{display:grid;gap:6px;font-size:17px}.hm-ctl select{font-size:17px;padding:12px;border-radius:10px;background:#16203a;color:#eef2ff;border:1px solid #3b4a77}
 .mq-row{display:grid;grid-template-columns:96px 1fr 44px;align-items:center;gap:10px;margin:12px 4px;font-size:17px}.mq-b{background:#1a2442;border-radius:8px;height:26px;overflow:hidden}.mq-b i{display:block;height:100%;border-radius:8px}.mq-row b{font-size:20px}
 .hm-chart{max-width:560px}.hm-chart svg{max-height:340px}.hm-h{max-width:640px}
+.mq-b{overflow:visible;height:22px}.mq-row2{margin:14px 4px}.mq-t2{font-size:17px;margin-bottom:4px}.mq-b{position:relative}.mq-b i{position:absolute;top:0;height:100%;border-radius:6px}.mq-b u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#ffd166}.mq-n{font-size:15px;color:#c4cde6;margin-top:4px}
+.ex-row{margin:12px 2px;padding-bottom:10px;border-bottom:1px solid #1f2a48}.ex-t{font-size:17px;line-height:1.4}.ex-bar{background:#1a2442;border-radius:6px;height:12px;margin:6px 0}.ex-bar i{display:block;height:100%;border-radius:6px;margin-inline-start:0}.ex-n{font-size:16px}
+.ex-tab{width:100%;border-collapse:collapse;font-size:14px}.ex-tab th,.ex-tab td{padding:6px;border-bottom:1px solid #1f2a48;text-align:right}
 .hm-back2{display:inline-block;margin:6px 0;padding:10px 14px;border:1px solid #3b4a77;border-radius:12px;color:#ffd166;text-decoration:none;font-weight:700}
 """
 ROUTER = """(function(){function r(){var h=location.hash.slice(1)||'home',id=h;if(/^s\\d+$/.test(h)||h==='top')id='research';var s=document.getElementById(id);if(!s||!s.classList.contains('screen')){id='home';s=document.getElementById('home')}
@@ -130,3 +151,28 @@ def wrap(page, ctx):
     out = page[:i] + '<div id="top"></div>' + scr + res + tail
     out = out.replace('</body>', '<script>' + js + '</script><script>' + ROUTER + '</script><noscript><style>.screen{display:block}</style></noscript></body>')
     return out
+
+def research_sections(ctx):
+    import pandas as pd
+    CALC = ctx["CALC"]; L = pd.read_csv("results/lies_mc.csv"); LM = pd.read_csv("results/lies_mc_mild_posthoc.csv"); EX = pd.read_csv("results/experiments.csv")
+    DN = {"pps_ratio": "הגרלה לפי גודל (רגיל)", "strat_prior": "מרובד + תיקון לפי עבר", "strat_greg_ps_bk": "המודל האידיאלי", "strat_prior_pastvote": "שקלול לפי הצבעה קודמת"}
+    RN = {"R1": "מתואמים", "R2": "מפוזרים", "R3": "לא עקביים", "all": "הכול יחד"}
+    def tab(df, size, regs):
+        t = "<table><tr><th>שקרנים</th><th>שיטה</th><th>חציון</th><th>טווח 90%</th><th>ממוצע</th><th>מעל ממוצע הטלוויזיה</th></tr>"
+        for rg in regs:
+            for d in DN:
+                r = df[(df.n == size[0]) & (df.m == size[1]) & (df.regime == rg) & (df.design == d)].iloc[0]
+                t += f"<tr><td>{RN[rg]}</td><td>{DN[d]}</td><td>{r['median']:.0f}</td><td>{r.p5:.0f} עד {r.p95:.0f}</td><td>{r['mean']:.1f}</td><td>{100*r.p_above_tv:.0f}%</td></tr>"
+        return t + "</table>"
+    h16 = f"""<h2>16. מונטה קרלו על שקרנים (נקבע מראש, lies-mc-v1)</h2>
+<p>עד עכשיו דפוס השקר היה קבוע (הרשימה הגדולה מסתירה 5, 10 או 20%). רק הדגימה הייתה מונטה קרלו. כאן גם השקר מוגרל בכל ריצה: אילו רשימות משקרות (כל רשימה מעל 3%, בהסתברות 0.35), כמה מהמצביעים שלהן מסתירים (אחיד בין 0 ל-25%), ולמי הם אומרים שהצביעו. הכול הנחות שלנו. {CALC}</p>
+<p>שלושה סוגי שקרנים: מתואמים (כולם בוחרים אותה רשימה אחרת, ומשקרים באותו אופן גם על העבר), מפוזרים (כל אחד אומר משהו אחר, גם כאן עקביים בעבר), ולא עקביים (משקרים בהווה, אומרים אמת על העבר). 300 ריצות לכל בחירות, כנסות 22 עד 25 (נתוני פיתוח), בלי אי מענה.</p>
+<p>120 קלפיות, 200 ראיונות בכל קלפי (מנדטים שגויים):</p>{tab(L, (120, 200), ["R1", "R2", "R3", "all"])}
+<p>60 קלפיות, 100 ראיונות:</p>{tab(L, (60, 100), ["all"])}
+<p><b>בדיקת רגישות, לא נקבעה מראש:</b> אם ההסתברות לשקר 0.15 והשיעור עד 10% (בממוצע 1.6 רשימות משקרות), 120 קלפיות ו-200 ראיונות:</p>{tab(LM, (120, 200), ["all"])}
+<p>קריאה: ההנחה המקורית קשה (בממוצע 3.7 רשימות משקרות, כ-12% מהמצביעים של כל אחת). אין לנו נתון על שקר אמיתי. בהנחה הקשה גם המודל האידיאלי חורג מממוצע הטלוויזיה (4.2) ברוב הריצות. בהנחה המתונה זה קורה בכשליש מהן. הממצא שנשאר בשתיהן: המודל טוב מההגרלה הרגילה, והשקלול לפי הצבעה קודמת לבדו לא יציב כששקרנים עקביים.</p>
+<p>קבצים: <span class="f">model/lies_mc.py</span> <span class="f">results/lies_mc.csv</span> <span class="f">results/lies_mc_draws.csv.gz</span> <span class="f">docs/prereg/lies_montecarlo.md</span></p>"""
+    cc = {"better": "שיפור", "none": "אין השפעה", "worse": "החמרה"}
+    t17 = "<table><tr><th>ניסוי</th><th>מדד</th><th>לפני</th><th>אחרי</th><th>שינוי</th><th>תוצאה</th><th>נתונים</th></tr>" + "".join(f"<tr><td>{r.tried}</td><td>{r.metric}</td><td>{r.baseline:g}</td><td>{r.variant:g}</td><td dir='ltr'>{r.change_pct:+.0f}%</td><td>{cc[r.verdict]}</td><td>{r.data}</td></tr>" for _, r in EX.iterrows()) + "</table>"
+    h17 = f"""<h2>17. כל הניסויים בטבלה אחת</h2><p>כל שורה לקוחה מקובצי התוצאות במאגר (results/experiments.csv, נבנה ב-scripts/build_experiments.py). שיפור או החמרה: שינוי של 5% ויותר בטעות. הכלל נקבע אחרי שהניסויים הורצו. ניסויים שנכשלו נשארים.</p>{t17}"""
+    return h16 + h17

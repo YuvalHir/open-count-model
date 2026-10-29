@@ -86,8 +86,11 @@ a.top{display:block;text-align:left;font-size:13px;color:var(--faint);text-decor
 .hm-cap{font-size:15px;line-height:1.55;color:#a8b3d1;margin:10px 2px 14px}
 .hm-leg{display:flex;flex-wrap:wrap;gap:6px 16px;margin:0 6px 10px;font-size:16px}.hm-leg i{display:inline-block;width:14px;height:14px;border-radius:4px;margin-inline-end:6px;vertical-align:-2px}
 .hm-more{background:#0f1526;border:1px solid #2b3860;border-radius:14px;padding:4px 14px;margin:8px 0}.hm-more summary{cursor:pointer;font-size:19px;font-weight:700;color:#ffd166;padding:12px 0}.hm-more div{font-size:17px;line-height:1.6}
-.hm-deep{font-size:15px}.hm-next{margin:18px 0 28px}.hm-next a{font-size:18px;color:#ffd166}
+.hm-tags{margin:12px 2px 0;font-size:14px}.hm-deep{font-size:15px}.hm-next{margin:18px 0 28px}.hm-next a{font-size:18px;color:#ffd166}
 .hm-ctl{display:grid;gap:10px;margin:0 4px 14px}.hm-ctl label{display:grid;gap:6px;font-size:17px}.hm-ctl select{font-size:17px;padding:12px;border-radius:10px;background:#16203a;color:#eef2ff;border:1px solid #3b4a77}
 .mq-row{display:grid;grid-template-columns:96px 1fr 44px;align-items:center;gap:10px;margin:12px 4px;font-size:17px}.mq-b{background:#1a2442;border-radius:8px;height:26px;overflow:hidden}.mq-b i{display:block;height:100%;border-radius:8px}.mq-row b{font-size:20px}
-.hm-back2{display:inline-block;margin:6px 0;padding:10px 14px;border:1px solid #3b4a77;border-radius:12px;color:#ffd166;text-decoration:none;font-weight:700}
 .hm-chart{max-width:560px}.hm-chart svg{max-height:340px}.hm-h{max-width:640px}
+.mq-b{overflow:visible;height:22px}.mq-row2{margin:14px 4px}.mq-t2{font-size:17px;margin-bottom:4px}.mq-b{position:relative}.mq-b i{position:absolute;top:0;height:100%;border-radius:6px}.mq-b u{position:absolute;top:-3px;bottom:-3px;width:2px;background:#ffd166}.mq-n{font-size:15px;color:#c4cde6;margin-top:4px}
+.ex-row{margin:12px 2px;padding-bottom:10px;border-bottom:1px solid #1f2a48}.ex-t{font-size:17px;line-height:1.4}.ex-bar{background:#1a2442;border-radius:6px;height:12px;margin:6px 0}.ex-bar i{display:block;height:100%;border-radius:6px;margin-inline-start:0}.ex-n{font-size:16px}
+.ex-tab{width:100%;border-collapse:collapse;font-size:14px}.ex-tab th,.ex-tab td{padding:6px;border-bottom:1px solid #1f2a48;text-align:right}
+.hm-back2{display:inline-block;margin:6px 0;padding:10px 14px;border:1px solid #3b4a77;border-radius:12px;color:#ffd166;text-decoration:none;font-weight:700}
