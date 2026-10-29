@@ -117,6 +117,91 @@ TV_N = len(_tvs); TV_MEAN = _tvs.out_of_place.mean(); TV_MIN = _tvs.out_of_place
 TV_MEAN_A = _tvA.out_of_place.mean(); TV_MAE = _tvs.mae_list.mean()
 SIM_NONE = _sim("none"); SIM_HARD = _sim("hard_both")
 
+
+# ---------- diagnosis + dashboard data ----------
+import json as _json
+_gb = pd.read_csv("results/tv_group_errors.csv")
+_GN = {"Likud": "הליכוד", "Haredi": "חרדים (ש״ס, יהדות התורה)", "Arab": "מפלגות ערביות", "Rest": "שאר הרשימות"}
+GRP_ROWS = ""
+for _k in ["Likud", "Haredi", "Arab", "Rest"]:
+    _c = ""
+    for _e in [21, 22, 23, 24, 25]:
+        _v = _gb[(_gb.election == _e) & (_gb.group == _k)].signed_err
+        _c += f"<td>{_v.mean():+.1f}</td>"
+    _all = _gb[_gb.group == _k].signed_err.mean()
+    GRP_ROWS += f"<tr><td>{_GN[_k]}</td>{_c}<td><b>{_all:+.1f}</b></td></tr>"
+_mf = pd.read_csv("results/mechanism_fit.csv")
+_SCN = {"none": "אין בעיה", "noise10": "10% עונים אקראית", "shy15": "15% ממצביעי הרשימה הגדולה מסתירים", "refuse20": "מצביעי הרשימה הגדולה עונים 20% פחות", "hard_nr": "חרדים וערבים עונים פחות", "place_refuse": "קלפיות חרדיות וערביות מסרבות", "hard_both": "שניהם"}
+MECH_ROWS = "".join(f"<tr><td>{_SCN.get(r.scenario, r.scenario)}</td><td>{'ללא תיקון' if r.design=='pps_ratio' else 'מרובד + תיקון'}</td><td>{r.sign_agree}</td><td>{r.mean_abs_diff_seats:.2f}</td></tr>" for r in _mf.sort_values("mean_abs_diff_seats").itertuples())
+_k26 = pd.read_csv("results/tv_k26_provisional.csv")
+_cn26 = {"Kan 11": "כאן 11", "Channel 12": "ערוץ 12", "Channel 13": "ערוץ 13", "i24NEWS": "i24NEWS", "Channel 16": "ערוץ 16", "Channel 14": "ערוץ 14"}
+K26_ROWS = "".join(f"<tr><td>{_cn26[r.channel]}</td><td>{r.out_of_place:.0f}</td><td>{r.likud_err:+d}</td><td>{r.arab_err:+d}</td></tr>" for r in _k26.itertuples())
+_bu = pd.read_csv("results/exitpoll_budget.csv")
+_bg = _bu[_bu.design == "strat_prior"].groupby(["n_places", "m"])[["seats_out_of_place", "deff_top"]].mean()
+BUD_ROWS = ""
+for _n in [30, 60, 120, 240]:
+    BUD_ROWS += f"<tr><td>{_n}</td>" + "".join(f"<td>{_bg.loc[(_n,_m)].seats_out_of_place:.1f} <span class='small'>(אפקט תכנון {_bg.loc[(_n,_m)].deff_top:.1f})</span></td>" for _m in [50, 100, 200, 400]) + "</tr>"
+_nat = pd.read_csv("data/turnout_national.csv")
+_nt = _nat.dropna(subset=["turnout_20h_pct"]).copy(); _nt["ratio"] = _nt.final_pct / _nt.turnout_20h_pct
+NAT_ROWS = ""
+for _i, _r in _nat.iterrows():
+    if pd.isna(_r.turnout_20h_pct): NAT_ROWS += f"<tr><td>{int(_r.election)}</td><td>לא נמצא</td><td>{_r.final_pct}%</td><td>-</td><td>-</td></tr>"; continue
+    _o = _nt[_nt.election != _r.election].ratio.mean(); _pr = _r.turnout_20h_pct * _o
+    NAT_ROWS += f"<tr><td>{int(_r.election)}</td><td>{_r.turnout_20h_pct}%</td><td>{_r.final_pct}%{' (ב-22:00, לא סופי)' if int(_r.election)==26 else ''}</td><td>{_pr:.1f}%</td><td>{_pr-_r.final_pct:+.1f}</td></tr>"
+_dd = pd.read_csv("results/exitpoll_dash.csv")
+_tw = _dd[(_dd.n == 120) & (_dd.m == 200) & (_dd.pat == "none") & (_dd.nr == "none") & _dd.design.isin(["strat_prior", "strat_prior_tw"])].groupby(["T", "design"]).seats_oop.mean().unstack("design")
+TW_ROWS = "".join(f"<tr><td>{int(t)}</td><td>{r.strat_prior:.1f}</td><td>{r.strat_prior_tw:.1f}</td></tr>" for t, r in _tw.iterrows())
+_DES = ["pps_ratio", "strat_prior", "strat_prior_bk", "strat_prior_pastvote", "strat_greg_ps_bk", "strat_prior_tw"]
+_LIE = [("none", 0), ("shy", 5), ("shy", 10), ("shy", 20), ("rand", 5), ("rand", 10), ("rand", 20)]
+_NRL = ["none", "nr", "nr_refuse"]; _TS = [22, 23, 24, 25, 26]; _NN = [30, 60, 120, 240]; _MM = [50, 100, 200, 400]
+_ix = _dd.set_index(["T", "design", "pat", "lv", "nr", "n", "m"])
+_vals = []
+for _t in _TS:
+    for _d in _DES:
+        for _p, _l in _LIE:
+            for _nr in _NRL:
+                for _n in _NN:
+                    for _m in _MM:
+                        _r = _ix.loc[(_t, _d, _p, _l, _nr, _n, _m)]
+                        _vals.append([round(float(_r.mae_pp), 2), round(float(_r.seats_oop), 1), round(float(_r.right_err), 1), round(float(_r.arab_err), 1)])
+_tvc = pd.read_csv("results/tv_exit_poll_comparison.csv"); _tvc = _tvc[(_tvc.scored == "yes") & _tvc.source_tier.isin(["A", "B"])]
+_tvd = {int(e): round(float(g.out_of_place.mean()), 1) for e, g in _tvc.groupby("election")}
+_tvd[26] = round(float(_k26.out_of_place.mean()), 1)
+DASH_JSON = _json.dumps({"T": _TS, "des": _DES, "lie": _LIE, "nr": _NRL, "n": _NN, "m": _MM, "v": _vals, "tv": _tvd}, separators=(",", ":"))
+
+_LL = {("none",0): "אין שקר", ("shy",5): "הסתרה 5%", ("shy",10): "הסתרה 10%", ("shy",20): "הסתרה 20%", ("rand",5): "אקראי 5%", ("rand",10): "אקראי 10%", ("rand",20): "אקראי 20%"}
+_NRN = {"none": "כולם עונים", "nr": "חרדים וערבים עונים פחות", "nr_refuse": "וגם קלפיות מסרבות"}
+IDEAL_ROWS = ""
+_dev = _dd[_dd["T"].between(22, 25)]
+for (_p, _l) in _LIE:
+    for _nr in _NRL:
+        def _q(des, n, m, df=_dev):
+            return df[(df.design == des) & (df.n == n) & (df.m == m) & (df.pat == _p) & (df.lv == _l) & (df.nr == _nr)].seats_oop.mean()
+        _a = _q("pps_ratio", 60, 100); _b = _q("strat_prior_pastvote", 120, 200); _c = _q("strat_greg_ps_bk", 120, 200)
+        _k = _dd[(_dd["T"] == 26) & (_dd.design == "strat_greg_ps_bk") & (_dd.n == 120) & (_dd.m == 200) & (_dd.pat == _p) & (_dd.lv == _l) & (_dd.nr == _nr)].seats_oop.mean()
+        IDEAL_ROWS += f"<tr><td>{_LL[(_p,_l)]}</td><td>{_NRN[_nr]}</td><td>{_a:.1f}</td><td>{_b:.1f}</td><td><b>{_c:.1f}</b></td><td>{_k:.1f}</td></tr>"
+DASH_JS = """
+const D=__DATA__;
+const NM={22:'ספטמבר 2019 (כנסת 22)',23:'מרץ 2020 (כנסת 23)',24:'מרץ 2021 (כנסת 24)',25:'נובמבר 2022 (כנסת 25)',26:'אוקטובר 2026 (כנסת 26) זמני'};
+function $(i){return document.getElementById(i)}
+function render(){
+ const ni=+$('dn').value, mi=+$('dm').value, d=+$('dd').value, li=+$('dl').value, nr=+$('dr').value;
+ let h='';
+ D.T.forEach((t,ti)=>{
+  const k=((((ti*6+d)*7+li)*3+nr)*4+ni)*4+mi, v=D.v[k];
+  const w=Math.min(100,v[1]*8);
+  const tv=D.tv[t]!==undefined?D.tv[t]:'-';
+  h+='<tr><td>'+NM[t]+'</td><td>'+v[0].toFixed(2)+'</td><td><b>'+v[1].toFixed(1)+'</b><div class="bar"><i style="width:'+w+'%"></i></div></td><td>'+v[2].toFixed(1)+'</td><td>'+v[3].toFixed(1)+'</td><td>'+tv+(t==26?' (זמני)':'')+'</td></tr>';
+ });
+ h+='<tr><td>אפריל 2019 (כנסת 21)</td><td colspan="4">לא ניתן להדמיה (אין בחירות קודמות במאגר)</td><td>'+D.tv[21]+'</td></tr>';
+ $('dout').innerHTML=h;
+ $('dbud').textContent=(D.n[ni]*D.m[mi]).toLocaleString('he-IL');
+}
+function preset(n,m,d,l,r){$('dn').value=n;$('dm').value=m;$('dd').value=d;$('dl').value=l;$('dr').value=r;render()}
+['dn','dm','dd','dl','dr'].forEach(i=>$(i).addEventListener('change',render));
+render();
+""".replace("__DATA__", DASH_JSON)
+
 # ---------- page ----------
 def tag(k, t): return f'<span class="t {k}">{t}</span>'
 OFF, CALC = tag("off", "נתוני ועדת הבחירות"), tag("calc", "חישוב שלנו")
@@ -318,7 +403,7 @@ B = argmin Σ_p w_p ‖y(p) − B·x(p)‖² + λ‖B‖²,  w_p = √(valid_p),
 <li>לא הוכחנו דיוק שווה או טוב יותר מ-Votes26 או ממודל אחר. הקוד והנתונים שלו סגורים, והטענות שלו נשארות שלו.</li>
 <li>הטווחים נבדקו בסדר אקראי בלבד.</li>
 <li>התאמת מקומות הצבעה בין בחירות חלקית (ראו הטבלה).</li>
-<li><b>קובצי אחוז ההצבעה של הוועדה (ב-20:00):</b> לכל קלפי מפורסם מספר המצביעים עד אותה שעה. בכנסת 26, הערכת גודל הקלפי (קולות כשרים) ממנו שגויה בכ-3% בממוצע, לעומת כ-11% מהגודל בבחירות הקודמות. הכנסת הגודל הזה למודל הורידה את שגיאת החלקים בסדר אקראי (ב-20% נספרו: מ-0.15 ל-0.10 נקודות אחוז), ושימוש בהצבעה כמשתנה מסביר נתן תוצאה מעורבת (עזר בסדר ליכוד נמוך קודם ב-5%, הזיק בסדר קטנות קודם). <b>מדד זה נבדק רק על כנסת 26, שאינה אימות עצמאי, ואין קבצים כאלה לבחירות קודמות שמצאנו.</b> לכן הוא עדיין לא בברירת המחדל. מקור: <code>results/turnout_k26.csv</code>, <code>python -m model.turnout</code>.</li>
+<li><b>קובצי אחוז ההצבעה של הוועדה (ב-20:00):</b> לכל קלפי מפורסם מספר המצביעים עד אותה שעה. בכנסת 26, הערכת גודל הקלפי (קולות כשרים) ממנו שגויה בכ-3% בממוצע, לעומת כ-11% מהגודל בבחירות הקודמות. הכנסת הגודל הזה למודל הורידה את שגיאת החלקים בסדר אקראי (ב-20% נספרו: מ-0.15 ל-0.10 נקודות אחוז), ושימוש בהצבעה כמשתנה מסביר נתן תוצאה מעורבת (עזר בסדר ליכוד נמוך קודם ב-5%, הזיק בסדר קטנות קודם). <b>מדד זה נבדק רק על כנסת 26, שאינה אימות עצמאי, ואין קבצי ביניים כאלה (לפי שעה) לבחירות קודמות שמצאנו.</b> אחוז ההצבעה <b>הסופי</b> לכל קלפי קיים לכל הבחירות (21 עד 25) והמודל משתמש בו (הצבעה בבחירות הקודמות ושינוי בהצבעה). לכן הוא עדיין לא בברירת המחדל. מקור: <code>results/turnout_k26.csv</code>, <code>python -m model.turnout</code>.</li>
 <li>מעטפות, קורלציה בין יישובים ואפקטים מגזריים לא בפנים.</li>
 <li>הסכמי העודפים של 2026 נלקחו מדיווחי תקשורת ולא אומתו מול הודעת הוועדה.</li><li>תחזית 2026 מניחה שהקלפיות הרגילות בקובץ שלמות, וההנחה לא אומתה; חלקי המעטפות שנותרו הם היוריסטיקה שלא כויילה.</li>
 <li>הדיוק בשלב מוקדם מאוד (1% נספרו) חלש.</li></ul>
@@ -381,7 +466,54 @@ B = argmin Σ_p w_p ‖y(p) − B·x(p)‖² + λ‖B‖²,  w_p = √(valid_p),
 <li>5 בחירות, 13 תאים. כנסת 26: התחזיות נשמרו ולא נספרו, עד שיהיו תוצאות סופיות רשמיות.</li>
 <li>המדד "מנדטים שמחוץ למקומם" אינו מדד גושים. הוא נקבע מראש כך.</li></ul>
 
-<h2>11. שחזור</h2>
+<h2>11. למה ערוצי הטלוויזיה פספסו? (אבחון, נקבע מראש)</h2>
+<p>הניתוח נקבע לפני החישוב: <code>docs/prereg/tv_miss_diagnosis.md</code> (תג diagnosis-v1). שגיאה מסומנת לקבוצה = מנדטים חזויים פחות סופיים (חיובי = הערוץ נתן יותר מדי). ממוצע על פני הערוצים, כנסות 21 עד 25. {CALC}</p>
+<div class="tw"><table><tr><th>קבוצה</th><th>21</th><th>22</th><th>23</th><th>24</th><th>25</th><th>הכול</th></tr>{GRP_ROWS}</table></div>
+<p><b>מה רואים:</b> הרשימות הערביות נחזו נמוך מדי בכל חמש הבחירות. הליכוד והחרדים: אין הטיה קבועה. הפספוסים הגדולים (כנסת 21 וכנסת 25) באים מ"שאר הרשימות", כלומר רשימות סמוך לאחוז החסימה שלא עברו (ניו רייט, זהות, מרצ). <b>כנסת 26 (זמני):</b> כל ששת הערוצים נתנו לרשימות הערביות פחות מהספירה שלנו.</p>
+<div class="tw"><table><tr><th>ערוץ (כנסת 26)</th><th>מנדטים שמחוץ למקומם (זמני)</th><th>שגיאת ליכוד</th><th>שגיאת ערביות (ש׳+רע״ם)</th></tr>{K26_ROWS}</table></div>
+<p class="small">ההשוואה לכנסת 26 היא מול <b>הספירה החיה שלנו</b> (מעטפות בהנחה), לא תוצאה רשמית, ואינה חלק מהמבחן שנקבע מראש. i24NEWS פגע בליכוד (27 מול 27), אבל טעה ברשימות אחרות, ולכן הסך אינו קרוב יותר. סקרי ערוצים 14, 16 ו-i24NEWS פורסמו בליל הבחירות; בבחירות 2022 ערוץ i24 לא ערך סקר משלו. ערוץ 14: מקורות שונים נותנים רשימות שונות במעט (ליכוד 30 או 31), ייתכן עדכון.</p>
+<h3>איזו הנחה בסימולציה משחזרת את הדפוס? (בדיקה שלנו)</h3>
+<div class="tw"><table><tr><th>הנחת התנהגות</th><th>שיטה</th><th>כיוון נכון (מתוך תאים)</th><th>הפרש ממוצע במנדטים</th></tr>{MECH_ROWS}</table></div>
+<p class="small">כיוון נכון = הסימן של הטיית הקבוצה בסימולציה שווה לזו של סקרי הטלוויזיה. זו התאמה, לא הוכחה. <b>ממצא:</b> ההנחות החזקות שלנו (חרדים וערבים עונים חצי, 15% מסתירים ליכוד) נותנות הטיות של 4 עד 5 מנדטים על החרדים או על הליכוד, וזה <b>לא</b> מה שרואים בסקרי הטלוויזיה בפועל. כלומר ערוצי הטלוויזיה כנראה מתקנים טוב מזה (שקלול לפי הצבעה קודמת, קלפיות דמה מרובדות), ושגיאתם נשארת בעיקר בערבים ובסף החסימה.</p>
+<h3>מה שהמפרסמים אמרו (לא בדיקה שלנו)</h3>
+<ul><li>שמואל רוזנר (ערוץ 13): "העוצמה של הליכוד היא משהו שלא ראינו בסקרים, אך הופיע די מוקדם במדגמים והמשיך לגדול" (ynet, <a href="https://www.ynetnews.com/article/rk5mt8g6zg" dir="ltr">ynetnews.com/article/rk5mt8g6zg</a>).</li>
+<li>צוריאל שרון (Direct Polls, i24NEWS): הצבעה גבוהה של ערבים "משפיעה על המשקל שנותנים לקבוצות אוכלוסייה, וצריך לדעת לטפל בזה בזמן אמת"; הוא מעריך שהמספרים האלה לא יחזרו (אותו מקור).</li></ul>
+<p>בכל ערוצי כנסת 26 העדכונים בלילה התקרבו לספירה (ליכוד: ערוץ 12 מ-24 ל-27, כאן 11 מ-25 ל-27, ערוץ 13 מ-25 ל-27), כלומר רשימות הפתיחה החמיצו את הליכוד ב-2 עד 3 מנדטים.</p>
+
+<h2>12. כמה קלפיות מול כמה ראיונות בכל קלפי</h2>
+<p>שגיאת מנדטים שמחוץ למקומם, שיטה מרובדת, בלי בעיות התנהגות, ממוצע כנסות 22 עד 25 (חישוב שלנו, סימולציה). בסוגריים "אפקט תכנון": כמה גדולה השונות לעומת מדגם אקראי של אותו מספר אנשים. ככל שמוסיפים ראיונות באותה קלפי, האפקט גדל והתועלת קטנה.</p>
+<div class="tw"><table><tr><th>קלפיות \ ראיונות לקלפי</th><th>50</th><th>100</th><th>200</th><th>400</th></tr>{BUD_ROWS}</table></div>
+<p><b>ממצא:</b> הכפלת הראיונות בכל קלפי (100 ל-200) משפרת רק ב-0.1 עד 0.3 מנדטים, והכפלת מספר הקלפיות (60 ל-120) משפרת ב-0.8 עד 1.1. 100 ראיונות אינם מעט, ו-200 לא יהפכו את המדגם. עם יותר קלפיות מגיעים לכ-3.3 מנדטים (240 קלפיות). כאן אין הנחות על שקר: זו שגיאת דגימה בלבד.</p>
+
+<h2>13. דשבורד אינטראקטיבי: מה היה קורה בכל בחירות</h2>
+<div class="box"><b>איך זה עובד:</b> הדשבורד קורא <b>טבלה שחושבה מראש</b> (לא מריץ סימולציה בדפדפן): לכל שילוב של הפרמטרים שבחרנו, ממוצע 60 הרצות של הדמיית מדגם על תוצאות הקלפיות האמיתיות של כל בחירות. ההתנהגות של הנשאלים (שקר, אי מענה, סירוב קלפיות) היא <b>הנחה שלנו</b>, לא מדידה. כנסות 22 עד 25 הן נתוני פיתוח; כנסת 26 זמנית ואינה אימות עצמאי. עמודת הטלוויזיה היא טעות הסקרים בפועל (ממוצע ערוצים, מנדטים שמחוץ למקומם).</div>
+<div class="ctl">
+<label>קלפיות <select id="dn"><option value="0">30</option><option value="1">60</option><option value="2" selected>120</option><option value="3">240</option></select></label>
+<label>ראיונות לקלפי <select id="dm"><option value="0">50</option><option value="1">100</option><option value="2" selected>200</option><option value="3">400</option></select></label>
+<label>שיטה <select id="dd"><option value="0">דגימה רגילה לפי גודל, בלי תיקון</option><option value="1">מרובדת + תיקון לפי הבחירות הקודמות</option><option value="2">+ קלפיות גיבוי כשקלפי מסרבת</option><option value="3">+ שאלת "למי הצבעת בפעם הקודמת" ושקלול (מקטין משקל של תשובות לא עקביות)</option><option value="4" selected>המודל האידיאלי: מרובד, גיבוי, שקלול לקבוצות, תיקון מודל</option><option value="5">מרובד + משקל לפי אחוז הצבעה ביום הבחירות (אם קובץ 20:00 זמין בזמן)</option></select></label>
+<label>שקר / טעות בתשובה <select id="dl"><option value="0" selected>אין</option><option value="1">הסתרה 5% (מצביעי הרשימה הגדולה אומרים אחרת)</option><option value="2">הסתרה 10%</option><option value="3">הסתרה 20%</option><option value="4">תשובה אקראית 5%</option><option value="5">תשובה אקראית 10%</option><option value="6">תשובה אקראית 20%</option></select></label>
+<label>אי מענה וסירוב <select id="dr"><option value="0" selected>כולם עונים</option><option value="1">חרדים עונים חצי, ערבים 40% פחות</option><option value="2">כנ״ל, וגם חצי מהקלפיות החרדיות והערביות מסרבות</option></select></label>
+</div>
+<p><button onclick="preset(1,1,0,0,0)">פשוט: 60x100, רגיל</button> <button onclick="preset(2,2,4,0,0)">אידיאלי 120x200, בלי בעיות</button> <button onclick="preset(2,2,4,2,2)">אידיאלי, בהנחות קשות</button> <button onclick="preset(2,2,0,2,2)">רגיל, בהנחות קשות</button> סך ראיונות: <b id="dbud"></b></p>
+<div class="tw"><table><tr><th>בחירות</th><th>שגיאת חלקים (נק׳)</th><th>מנדטים שמחוץ למקומם</th><th>שגיאת גוש הימין (מנדטים)</th><th>שגיאת ערביות (מנדטים)</th><th>טלוויזיה בפועל</th></tr><tbody id="dout"></tbody></table></div>
+<p class="small">הדשבורד אינו מראה תחזית מוצלחת: הוא מראה מה השיטה המתוכננת הייתה משיגה <b>בהדמיה</b>. אין בו טענה שנכה את הטלוויזיה.</p>
+
+<h2>14. המודל האידיאלי, ההנחות שלו ומה הוא לא מתקן</h2>
+<ul><li><b>המודל (נקבע מראש, dashboard-ideal-v1):</b> דגימת קלפיות מרובדת לפי פרופיל הבחירות הקודמות, כל קלפי מייצגת גודל צפוי; קלפיות גיבוי כשקלפי מסרבת; שאלת "למי הצבעת בפעם הקודמת" לשקלול; הערכה מותאמת-מודל ומשוקללת לקבוצות (חרדים, ערבים, אחרים); 120 קלפיות, 200 ראיונות בכל אחת.</li>
+<li><b>הנחות במפורש:</b> מצביע בקלפי שנדגמה עונה לראיון; הקלפיות נבחרות לפני הבחירות; התשובה על ההצבעה הקודמת עקבית עם התשובה הנוכחית; גודל הקלפי ידוע (נרשמים כפול הצבעה בבחירות הקודמות); סיכון מעטפות וחיילים מחוץ לדגימה.</li>
+<li><b>מה לא ניתן לתקן:</b> שקר שאין לו סימן בנתונים; סירוב שיטתי של קבוצה שלמה; רשימות ממש על אחוז החסימה (מדגם סביר לא יכריע אם רשימה מקבלת 0 או 4 מנדטים); שינוי חד בהצבעה של קבוצה (למשל ערבים ב-2026) לפני שיש נתון.</li></ul>
+<div class="tw"><table><tr><th>שקר</th><th>אי מענה</th><th>רגיל 60x100 (מנדטים שמחוץ למקומם, 22 עד 25)</th><th>שאלת הצבעה קודמת 120x200</th><th>המודל האידיאלי 120x200</th><th>המודל האידיאלי, כנסת 26 (זמני)</th></tr>{IDEAL_ROWS}</table></div>
+<p class="small">ממוצע על כנסות 22 עד 25, 60 הרצות לכל תא. בהנחות קשות המודל האידיאלי עדיין טועה ב-6 עד 10 מנדטים: ההנחות הקשות שלנו חזקות יותר ממה שנראה בסקרי הטלוויזיה בפועל (סעיף 11), ולכן ייתכן שהן מגזימות.</p>
+<h3>מה זמין בשעה 22:00, ומה לא</h3>
+<ul><li><b>זמין לפני 22:00:</b> תוצאות כל קלפי בבחירות הקודמות ואחוז ההצבעה הסופי שלה (לכל הבחירות 21 עד 25); אחוז ההצבעה הארצי שהוועדה מפרסמת במהלך היום (כולל 20:00); המדגם עצמו.</li>
+<li><b>לא זמין ב-22:00:</b> תוצאות קלפיות מהספירה (מתחילות כשעה אחר כך); קובץ ההצבעה לפי קלפי של 22:00 (לפי הוועדה מתפרסם כשעה אחרי שעת הדיווח). קובץ 20:00 לפי קלפי מתפרסם לפי הוועדה כשעה אחרי 20:00, כלומר בערך ב-21:00, ולכן בגבול: צריך לאמת כמה זמן לפני 22:00 הוא יוצא (לא תיעדנו את זמן הפרסום הראשון).</li></ul>
+<h3>הערכה לאחור של אחוז ההצבעה הסופי מאחוז ההצבעה ב-20:00 (ארצי)</h3>
+<div class="tw"><table><tr><th>בחירות</th><th>ארצי ב-20:00</th><th>סופי</th><th>הערכה (יחס מהבחירות האחרות, בלי הבחירות הזו)</th><th>שגיאה (נק׳)</th></tr>{NAT_ROWS}</table></div>
+<p><b>ממצא:</b> אפשר להעריך את ההצבעה הארצית הסופית ב-1 עד 3.5 נקודות אחוז (כנסת 26: הערכת יתר, כי חלק ההצבעה המאוחרת קטן). אבל <b>מספר ארצי בלבד לא משפר את המדגם</b>: אם מכפילים את ההצבעה בכל הקלפיות באותו מקדם, המשקלים היחסיים לא משתנים. התועלת הייתה רק מהפרש בין קבוצות (ערבים מול אחרים), וזה דורש נתוני אזור או קלפי של אותו יום, שיש לנו רק לכנסת 26.</p>
+<div class="tw"><table><tr><th>בחירות</th><th>מרובד, גודל לפי הבחירות הקודמות</th><th>מרובד, גודל לפי ההצבעה בפועל (עם רעש 3%)</th></tr>{TW_ROWS}</table></div>
+<p class="small">מנדטים שמחוץ למקומם, 120x200, בלי בעיות התנהגות. העמודה האחרונה היא <b>חסם עליון</b> (כאילו קובץ הקלפי ביום הבחירות זמין בזמן); רק לכנסת 26 יש קובץ כזה בפועל. התוצאה מעורבת: משפרת בחלק מהבחירות (22, 26) ומחמירה באחרות (25, 24), ולכן לא נאמץ אותה כברירת מחדל.</p>
+
+<h2>15. שחזור</h2>
 <p>הקוד, הנתונים שנאספו והמבחנים: <a href="{REPO}" dir="ltr">{REPO}</a>. להרצה:</p>
 <pre class="f">python3 scripts/fetch_history.py
 python3 -m model.backtest
@@ -394,6 +526,6 @@ python3 model/tv_compare.py
 python3 docs/site/build.py</pre>
 <p>דף זה נבנה מתוצאות המאגר על ידי הסקריפט האחרון. תיעוד נוסף במאגר: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
 <footer>הנתונים הגולמיים הם של ועדת הבחירות המרכזית (https://votes26.bechirot.gov.il, https://data.gov.il). פרויקט עצמאי, אינו מזוהה עם הוועדה ואינו מאושר על ידה. המודל אינו סקר ואינו תוצאה רשמית.</footer>
-</main></div></body></html>"""
+<script>{DASH_JS}</script></main></div></body></html>"""
 open("docs/site/index.html", "w", encoding="utf8").write(PAGE)
 print("ok", len(PAGE))

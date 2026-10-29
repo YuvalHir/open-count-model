@@ -52,5 +52,11 @@ n="First published ~22:20; K26 official results not final, NOT scored"
 add(26,"Kan 11",L26,[25,21,14,10,7,10,8,7,6,6,6],"A",s,n)
 add(26,"Channel 12",L26,[24,22,12,11,7,9,9,6,8,6,6],"A",s,n)
 add(26,"Channel 13",L26,[25,23,14,10,7,9,7,6,6,7,6],"A",s,n)
+
+# K26 other broadcasters (election night, first lists as reported by Times of Israel / ynet). NOT scored until official finals.
+nt="Election-night first list (ToI 27.10.2026 23:58 summary of exit polls); K26 not scored"
+add(26,"i24NEWS",L26,[27,20,15,9,7,9,5,7,8,7,6],"A","https://www.timesofisrael.com/liveblog_entry/three-more-exit-polls-by-non-mainstream-networks-diverge-wildly-with-one-projecting-60-seats-for-pms-bloc/ ; https://www.i24news.tv/en/news/israeli-elections/artc-i24news-exit-poll-likud-wins-27-seats-yashar-20-coalition-bloc-reaches-55-seats-opposition-49-and-arab-parties-16",nt+"; poll by Direct Polls (per ynet interview)")
+add(26,"Channel 16",L26,[25,22,13,11,5,10,6,7,7,7,7],"A","https://www.ynetnews.com/article/xl2l49txt ; https://www.timesofisrael.com/liveblog_entry/three-more-exit-polls-by-non-mainstream-networks-diverge-wildly-with-one-projecting-60-seats-for-pms-bloc/",nt)
+add(26,"Channel 14",L26,[31,20,11,11,7,9,0,7,10,7,7],"A","https://www.timesofisrael.com/liveblog_entry/three-more-exit-polls-by-non-mainstream-networks-diverge-wildly-with-one-projecting-60-seats-for-pms-bloc/",nt+"; differs from Israel Hayom's Channel 14 list (Likud 30, YB 4), which may be an earlier/other version")
 with open("data/tv_exit_polls/tv_exit_polls.csv","w",newline="",encoding="utf-8") as f:
     w=csv.writer(f); w.writerow(["election","channel","list","seats","source_tier","complete","source_url","as_stated_note"]); w.writerows(rows)

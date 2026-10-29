@@ -55,3 +55,8 @@ footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--line);font-si
 .dv{flex:0 0 70px;direction:ltr;text-align:left;font-size:13px;color:var(--dim)}
 .t.calc{color:#ffd166;border-color:#ffd166}
 @media(max-width:560px){.row .lab,.drow .lab{flex-basis:34%;font-size:12.5px}}
+
+.ctl{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0}.ctl label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:var(--muted,#9aa5c4)}.ctl select,button{background:#121a2e;color:#e8ecf8;border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit}button{cursor:pointer;margin:2px}.bar{height:5px;background:#1b2440;border-radius:3px;margin-top:3px;direction:ltr}.bar i{display:block;height:100%;background:#2fd3c4;border-radius:3px}
+@media(min-width:760px){.ctl{grid-template-columns:1fr 1fr}}
+
+.tw{overflow-x:auto;max-width:100%;margin:10px 0}.tw table{margin:0;min-width:100%}.ctl select{width:100%;max-width:100%}.ctl label{min-width:0}.ctl{max-width:100%}
