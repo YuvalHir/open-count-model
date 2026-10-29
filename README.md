@@ -21,6 +21,7 @@ ranges. The missing public piece is the arrival order of stations. This repo rec
 - `scripts/` - data download and processing.
 - `model/` - loaders, swing model, seat simulation, backtests.
 - `docs/` - plan, research notes, `how-it-works.md` (plain-language explanation), backtest.
+- `docs/site/` - static Hebrew page explaining the model (`python3 docs/site/build.py` regenerates it from results).
 
 ## Data disclaimer
 All election data in this repository (`data-raw/`, the downloaded history, the snapshots of the live files) is
