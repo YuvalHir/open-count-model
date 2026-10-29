@@ -15,7 +15,7 @@ MIN_SHARE_Y = 0.003   # T lists below this national share are pooled as "other"
 def regular(df):
     return df[(~df.is_envelope) & (df.valid > 0) & (df.registered > 0)].copy()
 
-def build_frame(cur: pd.DataFrame, prev: pd.DataFrame):
+def build_frame(cur: pd.DataFrame, prev: pd.DataFrame, strategy: str = "fill"):
     cur, prev = to_places(cur), to_places(prev)
     """Return (frame, ycols, xcols). One row per regular station of `cur` with T-1 features.
     Unmatched stations get their locality's T-1 profile, or the national one."""
@@ -40,8 +40,13 @@ def build_frame(cur: pd.DataFrame, prev: pd.DataFrame):
     cur_r = cur.reset_index(drop=True)
     pcols = xcols + ["valid"]
     # match voting places by (locality, place number); otherwise fall back to the locality profile
-    b = prev_f.drop_duplicates(["loc_code", "station"]).set_index(["loc_code", "station"])[pcols]
-    m = f.join(b.rename(columns={"valid": "prev_valid"}), on=["loc_code", "station"])
+    from .matching import match
+    idx = match(cur_r, prev_f, strategy)
+    b = prev_f[pcols].reset_index(drop=True)
+    m = f.copy()
+    ok = idx >= 0
+    for c in pcols:
+        m[c if c != "valid" else "prev_valid"] = np.where(ok, b[c].values[np.where(ok, idx, 0)], np.nan)
     m["matched"] = m.prev_valid.notna()
     um = ~m.matched
     for c in xcols:
