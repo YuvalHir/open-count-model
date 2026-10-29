@@ -32,3 +32,11 @@ actual coverage 85% at 2-20% counted and 93% at 40%. Under biased orders the int
 Compared with the claim of Votes26 (54/49/17 vs about 53/48/19 after 1.7% counted, bloc seats, unverified):
 not comparable yet, our metric is per list and the orders differ. A fair comparison needs the real 2026
 arrival order, which we only started recording at 13:09 IST on 29.10 (after the regular boxes were already in the file).
+
+## Envelopes (v1, `model/envelopes.py`)
+Test: predict Knesset 25 envelope list shares from K25 regular-box shares plus the mean (envelope minus regular)
+difference of K22-24, same list letters. Mean absolute error over all lists: 0.565 share points for the naive
+"same as regular boxes", 0.531 with the historical lean. A small gain. It fixes the Haredi/Arab dip (e.g. Shas 8.4% regular,
+6.8% in envelopes, estimate 6.8%) but misses new swings (Religious Zionism 15.5% true vs 11.2% estimated). Envelope
+votes were 10.7% of regular valid votes in K25. Output: `out/envelope_backtest.txt`. Envelope totals are not yet
+wired into the seat projection.
