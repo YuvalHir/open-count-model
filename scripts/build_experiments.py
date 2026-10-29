@@ -40,6 +40,12 @@ _r = pd.read_csv(R + "rake_exit.csv"); _r = _r[_r.n == 60]
 def _rg(sc, d): return _r[(_r.scenario.isin(sc)) & (_r.design == d)].seats_oop.mean()
 add("exitpoll", "שקלול (rake) לפי הצבעה קודמת בתוך קבוצות פרופיל, חוסר מענה, 60 קלפיות", "מנדטים שגויים", _rg(["shy15", "hard_nr"], "strat_prior"), _rg(["shy15", "hard_nr"], "rake_pg"), "פיתוח: סימולציה, כנסות 22-26 (נקבע מראש, ideas569-v1)", "משתפר כשיש חוסר מענה")
 add("exitpoll", "אותו שקלול, בלי בעיות במענה", "מנדטים שגויים", _rg(["none"], "strat_prior"), _rg(["none"], "rake_pg"), "פיתוח: סימולציה, כנסות 22-26 (נקבע מראש, ideas569-v1)", "מחמיר בלי בעיות ובשקר מעורב: נדחה")
+_q = pd.read_csv(R + "round2.csv"); _q = _q[_q["T"] >= 23]
+def _qg(o, m, f): return _q[(_q.order == o) & (_q["mode"] == m) & np.isclose(_q.frac, f)].share_mae_pp.mean()
+add("weights", "משקולות לפי הבדל בין קלפיות שנספרו ללא נספרו, 5% נספרו, סדר ליכוד נמוך קודם", "טעות בנתח הקולות", _qg("low_likud_first", "base", .05), _qg("low_likud_first", "iw", .05), "פיתוח: כנסות 23-26 (נקבע מראש, round2-v1)", "לא עוזר, נדחה")
+add("transfer", "מודל מעבר קולות עם התחלה מהבחירות הקודמות, 5% נספרו, ליכוד נמוך קודם", "טעות בנתח הקולות", _qg("low_likud_first", "base", .05), _qg("low_likud_first", "transfer_k002", .05), "פיתוח: כנסות 23-26 (נקבע מראש, round2-v1)", "משתפר בכל ארבע הבחירות, אבל המודל נדחה: ראו שתי השורות הבאות")
+add("transfer", "אותו מודל מעבר, 20% נספרו, סדר אקראי", "טעות בנתח הקולות", _qg("random", "base", .2), _qg("random", "transfer_k002", .2), "פיתוח: כנסות 23-26 (נקבע מראש, round2-v1)", "פי 4.5 יותר גרוע בסדר אקראי: נדחה לפי הכלל")
+add("transfer", "אותו מודל מעבר, 20% נספרו, סדר הצבעה נמוכה קודם", "טעות בנתח הקולות", _qg("low_turnout_first", "base", .2), _qg("low_turnout_first", "transfer_k002", .2), "פיתוח: כנסות 23-26 (נקבע מראש, round2-v1)", "גרוע יותר")
 t = pd.read_csv(R + "turnout_k26.csv"); t = t[t.order == "random"].groupby(["size_from_turnout", "turnout_feature"]).share_mae_pp.mean()
 add("turnout", "גודל קלפי מקובץ ההצבעה ב-20:00", "טעות בנתח הקולות", t[(0, 0)], t[(1, 0)], "פיתוח: כנסת 26")
 add("turnout", "אחוז הצבעה כמשתנה במודל", "טעות בנתח הקולות", t[(0, 0)], t[(0, 1)], "פיתוח: כנסת 26")

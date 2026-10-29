@@ -17,3 +17,8 @@ Success rule (Claude's): at least 20% lower share MAE at 1% and 5% counted in bi
 Observable shift severity s (= g above) with state-dependent interval width m(s)=1+c*s, c fit on K22-24, tested on K25 (K26 as second test). Planned for the next round; no result yet.
 
 Results are reported whatever they are. No tuning after seeing results.
+
+## Results (30.10.2026 ~00:15; results/round2.csv)
+Idea 1: Spearman correlation of base share MAE with observable gap g 0.826, with hidden swing gap h 0.847 (all cells K22-26). Prediction "more with h than g" holds only barely; the two are strongly correlated and cannot be told apart.
+Idea 2: REJECTED. Low-Likud-first 5%: 6.74 -> 7.25 pp; random unchanged; small-first 5%: 0.92 -> 1.43 (worse).
+Idea 3: REJECTED by the rule (kappa 0.02 and 0.2). kappa 0.02 vs base, T=23..26: low-Likud-first 1% -63%, 5% -56% (better in all four pairs), 20% -21%, 40% +22%; low-turnout-first 1% -65%, 5% +15%, 20% +184%; random 1% +92%, 20% +349%; small-first 1% -49%, 5% +23%. The model helps a lot exactly where the order is politically biased and early, and is far worse when it is not. Observable g is large in exactly the helpful cases (g = 118 at 1% low-Likud-first, 10.6 random), so a g-based switch is a natural next test, to be pre-registered with a threshold fixed WITHOUT looking at these results.
