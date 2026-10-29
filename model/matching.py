@@ -55,8 +55,35 @@ def _split_pass(c, p, out, num_w=0.02, cap=0.5):
             if cost[x, y] <= cap: out[ci[x]] = pi[cols[y]]
     return out
 
+def _cum(c, p, out, only_free):
+    cr = c.registered.values.astype(float); pr = p.registered.values.astype(float)
+    cg = c.groupby("loc_code").indices; pg = p.groupby("loc_code").indices
+    for l, ci in cg.items():
+        if l not in pg: continue
+        ci = ci[np.argsort(c.station.values[ci], kind="stable")]; pj = pg[l]; pj = pj[np.argsort(p.station.values[pj], kind="stable")]
+        pk = {s: j for j, s in zip(pj, p.station.values[pj])}
+        anc = [(k, pk[s]) for k, (i, s) in enumerate(zip(ci, c.station.values[ci])) if s in pk and abs(np.log(cr[i] / max(pr[pk[s]], 1))) < 0.25]
+        pos = {j: k for k, j in enumerate(pj)}
+        bounds = [(-1, -1)] + [(k, pos[j]) for k, j in anc] + [(len(ci), len(pj))]
+        for (k0, q0), (k1, q1) in zip(bounds[:-1], bounds[1:]):
+            cs = ci[k0 + 1:k1]; ps = pj[q0 + 1:q1]
+            if len(cs) == 0 or len(ps) == 0: continue
+            tc, tp = cr[cs].sum(), pr[ps].sum()
+            if tc <= 0 or tp <= 0 or not (0.5 <= tp / tc <= 2.0): continue
+            mid = (np.cumsum(cr[cs]) - cr[cs] / 2) / tc; edges = np.cumsum(pr[ps]) / tp
+            for i, f in zip(cs, mid):
+                if only_free and out[i] >= 0: continue
+                out[i] = ps[min(int(np.searchsorted(edges, f)), len(ps) - 1)]
+        if not only_free:
+            for k, j in anc: out[ci[k]] = j
+    return out
+
 def match(c, p, strategy="exact", ratio=1.67, num_w=0.02, cap=0.7, reuse=None):
     c = c.reset_index(drop=True); p = p.reset_index(drop=True)
+    if strategy == "cum":
+        return _cum(c, p, np.full(len(c), -1), False)
+    if strategy == "fillcum":
+        return _cum(c, p, match(c, p, "fill"), True)
     if strategy == "split":
         return _split_pass(c, p, match(c, p, "fill"))
     if strategy in ("site", "site2"):
