@@ -4,3 +4,9 @@ Differences from development pairs (limits, stated now): no address layer for K1
 Run: frozen backtest (model/backtest.py logic) for T=19, 20, 21 with orders random (3 seeds), small_first, large_first, low_turnout_first, low_likud_first, high_likud_first, counted 1/2/5/10/20/40/60/80%. Methods: ridge (the model) and raw counted total.
 Pre-registered predictions: (a) random order, 5% counted: model has fewer seats out of place than raw on each of the three pairs; (b) low-Likud-first, 20% counted: model better than raw on each pair; (c) model share MAE at 20% counted, random order, within the development range (0.14-0.23 pp) +/- 50%. Failure of any is reported as failure.
 Exploratory, NOT adopted whatever happens: the rejected challenger "transfer_k002" (round2-v1) on T=20 and T=21 only (T=19 would need K17, which is an XLS not in the loader); reported as a replication of its early-help lead and of its random-order loss.
+
+## Results (30.10.2026 ~00:19; results/holdout.csv; pairs K18->19, K19->20, K20->21, matched votes 93.5 / 98.1 / 97.5%)
+(a) Random 5%, seats out of place model vs raw: 1.67 vs 4.33, 1.67 vs 2.33, 5.67 vs 6.33. PASS on seats (small margins in T=20, 21).
+(b) Low-Likud-first 20%, seats: 19 vs 71, 13 vs 75, 31 vs 77. PASS.
+(c) Random 20% share MAE inside 0.07-0.345: 0.07, 0.13, 0.37. FAIL on K21 (0.37; the raw total is better there, 0.18). Also K19 random 20% seats: model 2.0 vs raw 0.67 (raw better).
+So the model's advantage at random order is NOT confirmed on the holdout beyond the small-sample seats; the large advantage under biased orders is confirmed. Transfer model (exploratory): replicates both findings (low-Likud-first 5%: 3.96 vs 5.94 pp on K20, 4.63 vs 8.33 on K21; random 20%: 1.40 vs 0.13 on K20, 1.09 vs 0.37 on K21).

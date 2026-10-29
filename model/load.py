@@ -10,9 +10,9 @@ import pandas as pd
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META_RENAME = {
     "שם ישוב": "loc_name", "סמל ישוב": "loc_code", "קלפי": "station", "מספר קלפי": "station",
-    "ברזל": "ballot_id", "בזב": "registered", "מצביעים": "voters", "פסולים": "invalid", "כשרים": "valid",
+    "ברזל": "ballot_id", "סמל קלפי": "station", "בז''ב": "registered", "בזב": "registered", "מצביעים": "voters", "פסולים": "invalid", "כשרים": "valid",
 }
-NOT_PARTY = {"סמל ועדה", "ריכוז", "שופט", "חיצוניות", "קלפי אחרת", "", "Unnamed: 0"}
+NOT_PARTY = {"ת. עדכון", "סמל ועדה", "ריכוז", "שופט", "חיצוניות", "קלפי אחרת", "", "Unnamed: 0"}
 
 def _read_text(raw: bytes) -> str:
     for enc in ("utf-8-sig", "cp1255"):
