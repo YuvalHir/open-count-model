@@ -12,7 +12,7 @@ def blend_S(ctx, mask, p1):
             S = ctx.S(m, m2)[np.searchsorted(np.where(~m2)[0], b)]; w = ctx.w[b]; L[m].append((w * ((S - ctx.Y[b]) ** 2).sum(1)).sum() / w.sum())
     Lm = {m: np.mean(v) for m, v in L.items()}; eta = 1.0 / np.mean(list(Lm.values())); lw = np.array([-eta * Lm["base"], -eta * Lm["transfer_const"]]); wt = np.exp(lw - lw.max()); wt /= wt.sum()
     return wt[0] * ctx.S("base", mask) + wt[1] * ctx.S("transfer_const", mask), wt[1]
-def gp_S(ctx, mask, rng):
+def gp_S(ctx, mask, rng, nr=0.5):
     c, u = mask, ~mask; S0c = ctx.S("transfer_const", c)
     from .round2 import fit_P
     kap = 0.02 * ctx.Wref / ctx.w[c].sum(); P = fit_P(ctx.Xs[c], ctx.Y[c], ctx.w[c], ctx.P0, kap)
@@ -20,7 +20,7 @@ def gp_S(ctx, mask, rng):
     mu, sd = ctx.X[c].mean(0), ctx.X[c].std(0) + 1e-9; A = (ctx.X[c] - mu) / sd; B = (ctx.X[u] - mu) / sd
     sub = A[rng.choice(len(A), min(400, len(A)), replace=False)]; d = np.sqrt(((sub[:, None] - sub[None]) ** 2).sum(-1)); ls = np.median(d[d > 0])
     k = lambda a, b: np.exp(-((a ** 2).sum(1)[:, None] + (b ** 2).sum(1)[None] - 2 * a @ b.T) / (2 * ls ** 2))
-    wn = ctx.w[c] / ctx.w[c].mean(); Kcc = k(A, A) + 0.5 * np.diag(1.0 / wn); alpha = np.linalg.solve(Kcc, ctx.Y[c] - Mc)
+    wn = ctx.w[c] / ctx.w[c].mean(); Kcc = k(A, A) + nr * np.diag(1.0 / wn); alpha = np.linalg.solve(Kcc, ctx.Y[c] - Mc)
     S = np.clip(Mu + k(B, A) @ alpha, 0, None); return S / np.clip(S.sum(1, keepdims=True), 1e-9, None)
 def gstat(ctx, mask, nulls):
     Xs = ctx.Xs; wp = ctx.frame.prev_valid.values.astype(float); tot = (Xs * wp[:, None]).sum(0) / wp.sum()
