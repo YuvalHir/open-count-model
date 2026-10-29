@@ -32,7 +32,7 @@ ranges. The missing public piece is the arrival order of stations. This repo rec
 
 The CEC file host answers plain scripts with a bot challenge. We do not work around it. A normal
 browser session loads the public page and reads the same public file, so `collector/watch.js` runs
-inside a browser tab on `https://media26.bechirot.gov.il/`. Once a minute it sends a cheap HEAD request, and
+inside a browser tab on `https://media26.bechirot.gov.il/`. Once a minute it sends a cheap HEAD request (the file host's bot-check token expires after a few minutes; the watcher renews it the way a browser does, by loading the file URL in a hidden iframe), and
 when `Last-Modified`/ETag change it downloads the file and queues a gzip copy. `collector/harvest.js`
 drains the queue and `collector/ingest_browser_result.py` writes
 `data-raw/live/<UTC>/expb.csv.gz`, `expc.csv.gz`, `meta.json` and appends `polls.jsonl`.

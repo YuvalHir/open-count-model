@@ -12,3 +12,11 @@
 {"content_length": "152086", "file": "expc", "last_modified": "Thu, 29 Oct 2026 10:34:24 GMT", "status": 200, "t": "2026-10-29T11:15:23.395Z"}
 {"content_length": "1732770", "file": "expb", "last_modified": "Thu, 29 Oct 2026 10:34:24 GMT", "status": 200, "t": "2026-10-29T11:16:23.871Z"}
 {"error": "TypeError: Failed to fetch", "t": "2026-10-29T11:16:23.871Z"}
+{"content_length": "0", "file": "expb", "last_modified": null, "status": 202, "t": "2026-10-29T11:17:26.422Z"}
+{"content_length": "0", "file": "expc", "last_modified": null, "status": 202, "t": "2026-10-29T11:17:26.422Z"}
+{"content_length": "0", "file": "expb", "last_modified": null, "status": 202, "t": "2026-10-29T11:18:26.873Z"}
+{"content_length": "0", "file": "expc", "last_modified": null, "status": 202, "t": "2026-10-29T11:18:26.873Z"}
+{"content_length": "1732770", "file": "expb", "last_modified": "Thu, 29 Oct 2026 10:34:24 GMT", "status": 200, "t": "2026-10-29T11:19:27.334Z"}
+{"content_length": "152086", "file": "expc", "last_modified": "Thu, 29 Oct 2026 10:34:24 GMT", "status": 200, "t": "2026-10-29T11:19:27.334Z"}
+{"content_length": "0", "file": "expb", "last_modified": null, "status": 202, "t": "2026-10-29T11:20:27.810Z"}
+{"content_length": "0", "file": "expc", "last_modified": null, "status": 202, "t": "2026-10-29T11:20:27.810Z"}
