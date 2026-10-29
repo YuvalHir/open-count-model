@@ -1,0 +1,4 @@
+# Why is the holdout gain smaller? (diagnostic, 30.10.2026 ~01:42 IST, no new method; from results/round3.csv)
+Transfer model with constant penalty vs base, share MAE at 5% counted, very biased order (beta 8), mean of 3 draws per election (simulated orders):
+K20 3.67 -> 3.22 (-12%), K21 4.08 -> 3.32 (-19%) [holdout]; K23 4.61 -> 1.66 (-64%), K24 3.35 -> 2.53 (-24%), K25 3.21 -> 1.45 (-55%), K26 4.86 -> 2.96 (-39%) [development].
+Place-matching rate on holdout is 98.1% (K20) and 97.5% (K21), so poor matching does not explain it. The gain varies a lot between elections (-12% to -64%); the two holdout elections are the lowest. Reading: the size of the early gain depends on the election (how far the vote moved between the two previous elections and the current one); it is a property of the data, not a bug. A claim "about -40% early gain" is not safe; the honest range is -12% to -64%.
