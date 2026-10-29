@@ -1,13 +1,13 @@
 {
- "snapshot": "20261029T214918Z",
+ "snapshot": "20261029T220828Z",
  "regular_boxes": 12018,
  "envelope_rows": 908,
  "registered_regular": 7331981,
  "voters_regular": 5264684,
  "voters_envelopes": 451981,
  "voters_total": 5716665,
- "valid_total": 5690778,
- "invalid_total": 25887,
+ "valid_total": 5690682,
+ "invalid_total": 25983,
  "turnout_pct_incl_envelopes": 77.97,
  "lists": {
   "מחל": {
@@ -18,7 +18,7 @@
   },
   "דרך": {
    "votes": 913502,
-   "share_pct": 16.052,
+   "share_pct": 16.053,
    "seats": 21,
    "announced": 21
   },
