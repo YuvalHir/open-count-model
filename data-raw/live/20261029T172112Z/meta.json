@@ -1,0 +1,18 @@
+{
+ "fetched_at_utc": "2026-10-29T17:21:12.124Z",
+ "expb": {
+  "bytes": 1819042,
+  "etag": "\"878ae3cc867dd1:0:dtagent10347260902154543VuUO\"",
+  "last_modified": "Thu, 29 Oct 2026 17:09:19 GMT",
+  "sha256": "fc9b1646acef2eb762aebed867391fee5741a7b1f19efcf94d66d9ba323173df",
+  "status": 200
+ },
+ "expc": {
+  "bytes": 152943,
+  "etag": "\"db14ec3cc867dd1:0:dtagent10347260902154543VuUO\"",
+  "last_modified": "Thu, 29 Oct 2026 17:09:19 GMT",
+  "sha256": "ad475ee24b2c00da2b33134c179678c64e50c95c72c7f2cd0707e0c704a1c458",
+  "status": 200
+ },
+ "expc_fetched_at_utc": "2026-10-29T17:22:15.228Z"
+}
