@@ -20,7 +20,14 @@ ranges. The missing public piece is the arrival order of stations. This repo rec
 - `data-raw/cec_history/` - not committed; filled by `scripts/fetch_history.py` (Knesset 18-25 by station).
 - `scripts/` - data download and processing.
 - `model/` - loaders, swing model, seat simulation, backtests.
-- `docs/` - plan and research notes.
+- `docs/` - plan, research notes, `how-it-works.md` (plain-language explanation), backtest.
+
+## Data disclaimer
+All election data in this repository (`data-raw/`, the downloaded history, the snapshots of the live files) is
+**published by the Central Elections Committee (ועדת הבחירות המרכזית) and is not our work**. We only record and
+redistribute unmodified copies, with a UTC timestamp, for research. The CEC owns the data and its terms apply
+(see sources below and https://data.gov.il/terms). It carries no endorsement by the CEC. The MIT license
+covers the code and our own analysis only, not the CEC data. The CEC's own site is the authoritative source.
 
 ## Data sources and attribution
 
