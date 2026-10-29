@@ -40,3 +40,9 @@ Arrival order is then derived by diffing consecutive snapshots (`model/first_see
 
 Limits: a station's first-seen time is the first snapshot that contains it, so resolution is the CEC
 publication interval, not per station. The file also carries "external envelope" rows (code 9999).
+
+## Timing caveat (observed)
+The files are served through a CDN (`cache-control: max-age=60`). On 29.10 the CEC file's `Last-Modified` changed to
+11:24:20 GMT but our polls only saw it at 11:33:55 UTC, so `Last-Modified` is the file generation time and our
+first-seen time is the time the new version became visible to us, up to ~9 minutes later in that case. Use `cec_last_modified`
+for ordering and the snapshot time for latency analysis.
