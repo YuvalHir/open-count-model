@@ -1,8 +1,8 @@
 {
- "snapshot": "20261029T131150Z",
+ "snapshot": "20261029T145954Z",
  "assumption": "regular boxes in the file are complete (not verified)",
- "regular_valid": 5221250.0,
- "envelope_valid_so_far": 293961.0,
+ "regular_valid": 5223089.0,
+ "envelope_valid_so_far": 390067.0,
  "env_ratio_hist": {
   "22": 0.06741487613644839,
   "23": 0.07688275978565864,
@@ -10,93 +10,93 @@
   "25": 0.10652833655517335
  },
  "env_remaining_votes_range": [
-  58028.922027431196,
-  262250.07723869884
+  0,
+  166339.98284962378
  ],
  "lists": {
   "אמת": {
-   "votes_counted": 355768.0,
-   "share_counted_pct": 6.450668886466901,
+   "votes_counted": 361756.0,
+   "share_counted_pct": 6.444787923228929,
    "seats_median": 8.0,
    "seats_lo": 8.0,
    "seats_hi": 8.0,
    "p_in_knesset": 1.0
   },
   "ב": {
-   "votes_counted": 312644.0,
-   "share_counted_pct": 5.668758638608749,
+   "votes_counted": 320700.0,
+   "share_counted_pct": 5.7133633912900335,
    "seats_median": 7.0,
    "seats_lo": 7.0,
    "seats_hi": 7.0,
    "p_in_knesset": 1.0
   },
   "ג": {
-   "votes_counted": 305283.0,
-   "share_counted_pct": 5.535291396829605,
+   "votes_counted": 310067.0,
+   "share_counted_pct": 5.523933416423844,
    "seats_median": 7.0,
    "seats_lo": 7.0,
    "seats_hi": 7.0,
    "p_in_knesset": 1.0
   },
   "דרך": {
-   "votes_counted": 887341.0,
-   "share_counted_pct": 16.088976468896657,
+   "votes_counted": 901840.0,
+   "share_counted_pct": 16.066540819460567,
    "seats_median": 21.0,
    "seats_lo": 21.0,
    "seats_hi": 21.0,
    "p_in_knesset": 1.0
   },
   "ודם": {
-   "votes_counted": 493536.0,
-   "share_counted_pct": 8.948633152929235,
+   "votes_counted": 496878.0,
+   "share_counted_pct": 8.852025491541657,
    "seats_median": 11.0,
    "seats_lo": 11.0,
    "seats_hi": 11.0,
    "p_in_knesset": 1.0
   },
   "ט": {
-   "votes_counted": 274252.0,
-   "share_counted_pct": 4.972647465346294,
+   "votes_counted": 283329.0,
+   "share_counted_pct": 5.047588201717536,
    "seats_median": 6.0,
    "seats_lo": 6.0,
    "seats_hi": 6.0,
    "p_in_knesset": 1.0
   },
   "ל": {
-   "votes_counted": 327298.0,
-   "share_counted_pct": 5.934460168432359,
+   "votes_counted": 332713.0,
+   "share_counted_pct": 5.927378465875526,
    "seats_median": 7.0,
    "seats_lo": 7.0,
    "seats_hi": 7.0,
    "p_in_knesset": 1.0
   },
   "מחל": {
-   "votes_counted": 1133834.0,
-   "share_counted_pct": 20.558306835404846,
+   "votes_counted": 1152059.0,
+   "share_counted_pct": 20.524264780811365,
    "seats_median": 27.0,
    "seats_lo": 27.0,
    "seats_hi": 27.0,
    "p_in_knesset": 1.0
   },
   "עם": {
-   "votes_counted": 330630.0,
-   "share_counted_pct": 5.994874901431695,
+   "votes_counted": 333546.0,
+   "share_counted_pct": 5.942218602155365,
    "seats_median": 8.0,
    "seats_lo": 8.0,
    "seats_hi": 8.0,
    "p_in_knesset": 1.0
   },
   "רק": {
-   "votes_counted": 509399.0,
-   "share_counted_pct": 9.236255874888558,
+   "votes_counted": 522094.0,
+   "share_counted_pct": 9.301255835398125,
    "seats_median": 12.0,
    "seats_lo": 12.0,
    "seats_hi": 12.0,
    "p_in_knesset": 1.0
   },
   "שס": {
-   "votes_counted": 290503.0,
-   "share_counted_pct": 5.267305276262323,
+   "votes_counted": 295889.0,
+   "share_counted_pct": 5.2713482397424904,
    "seats_median": 6.0,
    "seats_lo": 6.0,
    "seats_hi": 6.0,
