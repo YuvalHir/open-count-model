@@ -1,0 +1,8 @@
+# Pre-registration gp-gate-v1: GP-residual model behind the visible-shift gate and a counted-fraction cutoff, with a 3-value noise grid. Written 30.10.2026 ~01:40 IST, before running.
+Context (disclosed): mc-v1 showed GP (round4 idea 6, noise ratio 0.5) is about neutral in random order but loses in one cell (low-turnout-first 40% counted, +17% dev) and has smaller gains on holdout at 5% counted (-12% to -16%). The changes below respond to those two facts, so they are NOT blind; adoption therefore needs the full rule on BOTH sets and a fresh replication.
+Candidates (all fixed now):
+- gp_nr for noise ratio nr in {0.1, 0.5, 2.0} (all reported; kernel, lengthscale median heuristic, transfer_const mean unchanged).
+- gate: use gp_nr if counted fraction f <= 20% AND g > 95th percentile of g for the same number of randomly drawn places (as switch-v1); otherwise base. (Cutoff 20% is chosen because GP is not worse than base at 20% in mc-v1 except the low-turnout cell at 40%; 40% counted = base.)
+Grid: round3-v1 severity grid (beta 0,0.5,1,2,4,8 x 3 seeds, small_first, low_turnout_first), counted 1/5/20/40%. Dev T=23..26, holdout T=20,21.
+Success rule (round3-v1 rule): share MAE never worse than +5% of base in any grid cell AND >=20% better than base at beta 4 and 8 at 1% and 5% counted, on dev AND holdout. Ungated gp_nr is also reported against the same rule. If several nr pass, the one with the lowest mean change vs base over all cells on dev+holdout is reported as "best, post-hoc" and still needs K27 or fresh draws.
+Replication: any passing candidate gets a 200-draw replication (seeds 2000..2199, as mc-v1) before the word "adopted" is used; method-v2 stays the frozen baseline until then.
