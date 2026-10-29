@@ -1,0 +1,6 @@
+# Pre-registration switch-cutoff-v1: the switch-v1 rule active only while counted fraction <= a cutoff. Written 30.10.2026 ~01:10 IST, before this analysis is computed.
+Disclosure: switch-v1 results (full-range switch) were already seen on development and holdout. The cutoff grid below is fixed by us now as a short a-priori list, not tuned: {5%, 20%} counted (40% = no cutoff = switch-v1 itself, as reference). No other cutoff will be tried. All three are reported; none is picked on development.
+Rule: for counted fraction f <= cutoff: use switch-v1 (transfer_k002 if g above the random-draw 95th percentile, else base); for f > cutoff: base. Nothing else changes (threshold from theory as in switch-v1).
+Primary data: results/switch.csv (switch-v1 orders random, low_likud_first, small_first, low_turnout_first; counted 1/5/20/40%; dev T=23-26, holdout T=20,21). Secondary: the severity grid of round3-v1 (beta 0..8) using the same g flags, computed in round4-v1.
+Judged on share MAE and seats out of place, per cell, development and holdout separately.
+Success rule (same as switch-v1): cost in random order <= +5% (share MAE) at every counted fraction; AND >= 20% gain over base in low_likud_first at 5% counted; on BOTH development and holdout. Report the cost in random order at the cutoff itself and the gain in biased orders, per cutoff.
