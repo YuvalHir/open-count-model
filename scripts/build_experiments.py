@@ -74,5 +74,19 @@ try:
     add("lying", "מונטה קרלו על שקרנים: המודל האידיאלי מול הגרלה רגילה", "מנדטים שגויים (ממוצע)", L["pps_ratio"], L["strat_greg_ps_bk"], "פיתוח: סימולציה, התפלגות הנחה", "")
     add("lying", "מונטה קרלו על שקרנים: שקלול לפי הצבעה קודמת מול מודל מרובד", "מנדטים שגויים (ממוצע)", L["strat_prior"], L["strat_prior_pastvote"], "פיתוח: סימולציה, התפלגות הנחה", "שקרנים עקביים שוברים את השקלול")
 except FileNotFoundError: pass
+
+try:
+    S = pd.read_csv(R + "switch.csv"); S["set"] = S["T"].apply(lambda t: "dev" if t >= 23 else "hold")
+    sv = lambda st, o, f, m: S[(S.set == st) & (S.order == o) & (S.frac == f) & (S.method == m)].seats.mean()
+    for st, lab in (("dev", "פיתוח: כנסות 23-26"), ("hold", "מדגם מוחזק: כנסות 20-21")):
+        add("switch", "מעבר אוטומטי למודל ההעברה לפי סטיית g: סדר מוטה (5% נספרו)", "מנדטים שגויים", sv(st, "low_likud_first", 0.05, "base"), sv(st, "low_likud_first", 0.05, "switch"), lab, "")
+        add("switch", "מעבר אוטומטי למודל ההעברה לפי סטיית g: סדר אקראי (5% נספרו)", "מנדטים שגויים", sv(st, "random", 0.05, "base"), sv(st, "random", 0.05, "switch"), lab, "לא אומץ: פוגע בסדר אקראי בפיתוח")
+except FileNotFoundError: pass
+try:
+    C = pd.read_csv(R + "cbs_feat.csv"); C = C[C["T"] >= 22]
+    for o, lab in (("low_likud_first", "סדר מוטה"), ("random", "סדר אקראי")):
+        q = C[(C.order == o) & (C.frac == 0.2)].groupby("mode").share_mae_pp.mean()
+        add("data", "מדד חברתי-כלכלי של הלמ\"ס כמשתנה נוסף: " + lab + " (20% נספרו)", "שגיאת נתח (נק' אחוז)", q["base"], q["cbs"], "פיתוח: כנסות 22-26", "אין שיפור לפי הכלל שנקבע מראש")
+except FileNotFoundError: pass
 pd.DataFrame(rows).to_csv(R + "experiments.csv", index=False)
 print(pd.DataFrame(rows)[["tried", "baseline", "variant", "change_pct", "verdict"]].to_string())
