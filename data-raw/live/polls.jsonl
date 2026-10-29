@@ -944,3 +944,43 @@
 {"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:45:47.394Z"}
 {"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:46:48.928Z"}
 {"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:46:48.928Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:47:49.669Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:47:49.669Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:48:50.896Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:48:50.896Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:49:51.634Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:49:51.634Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:51:02.253Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:51:02.253Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:52:02.628Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:52:02.628Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:53:03.030Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:53:03.030Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:54:06.201Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:54:06.201Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:55:06.910Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:55:06.910Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:56:07.754Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:56:07.754Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:57:08.528Z"}
+{"error": "TypeError: Failed to fetch", "file": "expc", "t": "2026-10-29T19:57:08.528Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:58:19.422Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:58:19.422Z"}
+{"error": "TypeError: Failed to fetch", "file": "expb", "t": "2026-10-29T19:59:19.814Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T19:59:19.814Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:00:22.387Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:00:22.387Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:01:22.766Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:01:22.766Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:02:23.509Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:02:23.509Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:03:23.893Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:03:23.893Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:04:34.519Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:04:34.519Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:05:34.906Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:05:34.906Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:06:35.278Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:06:35.278Z"}
+{"content_length": "1821311", "file": "expb", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:07:35.661Z"}
+{"content_length": "153058", "file": "expc", "last_modified": "Thu, 29 Oct 2026 17:48:15 GMT", "status": 200, "t": "2026-10-29T20:07:35.661Z"}
