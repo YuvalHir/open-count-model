@@ -143,6 +143,51 @@ env = open("results/envelopes.txt", encoding="utf8").read().splitlines()
 K25env = [l for l in env if l.startswith("K25")][0]
 envtbl = "".join(f"<tr><td>{k}</td><td>{a}</td><td>{b}</td></tr>" for k, a, b in [("ליכוד", "23.5%", "23.4%"), ("הציונות הדתית", "15.5%", "10.3%"), ("יש עתיד", "16.9%", "17.9%"), ("ש״ס", "6.8%", "8.4%")])
 
+# ---------- exit-poll sampling section (results/exitpoll.csv; model/exitpoll.py) ----------
+EP = pd.read_csv("results/exitpoll.csv"); EPD = EP[EP["T"].isin([22, 23, 24, 25]) & (EP.m == 100)]
+EPN = sorted(EPD.n_places.unique())
+def epv(sc, des, n, col, m=100):
+    d = EP[EP["T"].isin([22, 23, 24, 25]) & (EP.m == m) & (EP.scenario == sc) & (EP.design == des) & (EP.n_places == n)]
+    return float(d[col].mean())
+def ep_chart(series, title, ylab, ymax, w=720, h=330):
+    L, R, Tp, B = 56, 16, 14, 52
+    pw, ph = w - L - R, h - Tp - B
+    x = lambda i: L + pw * i / (len(EPN) - 1)
+    y = lambda v: Tp + ph * (1 - min(v, ymax) / ymax)
+    o = [f'<svg viewBox="0 0 {w} {h}" role="img" aria-label="{esc(title)}" style="width:100%;height:auto;direction:ltr">']
+    for t in np.linspace(0, ymax, 6):
+        o.append(f'<line x1="{L}" x2="{w-R}" y1="{y(t):.1f}" y2="{y(t):.1f}" stroke="#ffffff22"/><text x="{L-8}" y="{y(t)+4:.1f}" text-anchor="end" font-size="12" fill="#a8b3d1">{t:.1f}</text>')
+    for i, n in enumerate(EPN):
+        o.append(f'<text x="{x(i):.1f}" y="{h-B+18}" text-anchor="middle" font-size="12" fill="#a8b3d1">{n}</text>')
+    o.append(f'<text x="{L+pw/2}" y="{h-8}" text-anchor="middle" font-size="12.5" fill="#a8b3d1" direction="rtl">מספר קלפיות במדגם</text>')
+    o.append(f'<text transform="translate(14,{Tp+ph/2}) rotate(-90)" text-anchor="middle" font-size="12.5" fill="#a8b3d1" direction="rtl">{esc(ylab)}</text>')
+    for name, vals, col, dash in series:
+        pts = " ".join(f"{x(i):.1f},{y(v):.1f}" for i, v in enumerate(vals))
+        da = 'stroke-dasharray="6 4"' if dash else ""
+        o.append(f'<polyline points="{pts}" fill="none" stroke="{col}" stroke-width="2.5" {da}/>')
+        for i, v in enumerate(vals): o.append(f'<circle cx="{x(i):.1f}" cy="{y(v):.1f}" r="3" fill="{col}"/>')
+    o.append("</svg>")
+    leg = "".join(f'<span style="margin-left:14px;white-space:nowrap"><i class="k" style="background:{c}"></i>{esc(n)}</span>' for n, v, c, d in series)
+    return f'<figure class="chart"><figcaption>{esc(title)}</figcaption><div class="legend">{leg}</div>{"".join(o)}</figure>'
+DN = {"srs_ratio": "הגרלה פשוטה", "pps_ratio": "הגרלה לפי גודל", "strat_ratio": "מדגם מרובד לפי פרופיל קודם", "strat_prior": "מרובד + תיקון לפי הבחירות הקודמות", "strat_prior_pastvote": "מרובד + תיקון + שאלת הצבעה קודמת"}
+DC = {"srs_ratio": "#6b7694", "pps_ratio": "#a77bff", "strat_ratio": "#f2b84b", "strat_prior": "#2fd3c4", "strat_prior_pastvote": "#ff7a8a"}
+EP_C1 = ep_chart([(DN[d], [epv("none", d, n, "share_mae_pp") for n in EPN], DC[d], d == "srs_ratio") for d in DN], "שגיאת אחוזים ממוצעת לרשימה (נקודות אחוז), בלי נבדקים משקרים, 100 ראיונות לקלפי", "נקודות אחוז", 3.0)
+SCN = {"none": "אין שקר", "noise10": "10% עונים באקראי", "shy15": "15% מבוחרי הרשימה הגדולה מציינים אחרת", "refuse20": "מצביעי הרשימה הגדולה עונים 20% פחות", "noise10_shy15": "שני הקודמים יחד"}
+EP_C2 = ep_chart([(SCN[s], [epv(s, "strat_prior", n, "share_mae_pp") for n in EPN], c, s == "none") for s, c in zip(SCN, ["#2fd3c4", "#f2b84b", "#ff7a8a", "#a77bff", "#6b7694"])], "אותו מדגם הטוב ביותר, תחת הנחות שקר שונות", "נקודות אחוז", 3.0)
+def need(des, sc, col, thr):
+    g_ = EPD[(EPD.design == des) & (EPD.scenario == sc)].groupby("n_places")[col].mean()
+    ns, v = g_.index.values, g_.values
+    for i in range(len(ns)):
+        if v[i] <= thr:
+            return str(int(ns[0])) if i == 0 else str(int(round(ns[i-1] + (v[i-1] - thr) / (v[i-1] - v[i]) * (ns[i] - ns[i-1]))))
+    return "יותר מ-150"
+EP_NEED = "".join(f"<tr><td>{SCN[sc]}</td><td>{need('strat_prior', sc, 'share_mae_pp', 1.0)}</td><td>{need('strat_prior', sc, 'share_mae_pp', 0.75)}</td><td>{need('strat_prior', sc, 'share_mae_pp', 0.5)}</td><td>{need('strat_prior', sc, 'seats_misallocated', 4)}</td></tr>" for sc in SCN)
+EP_ROWS = "".join(f"<tr><td>{n}</td><td>{epv('none','strat_prior',n,'share_mae_pp'):.2f}</td><td>{epv('none','strat_prior',n,'top_sd_pp'):.2f}</td><td>±{1.645*epv('none','strat_prior',n,'top_sd_pp'):.1f}</td><td>{epv('none','strat_prior',n,'seats_misallocated'):.1f}</td></tr>" for n in (10, 20, 30, 40, 50, 60, 80, 100, 150))
+EP_SC = "".join(f"<tr><td>{SCN[sc]}</td>" + "".join(f"<td>{epv(sc, d, 50, 'share_mae_pp'):.2f}</td>" for d in ("pps_ratio", "strat_prior", "strat_prior_pastvote")) + f"<td><bdi dir='ltr'>{epv(sc,'strat_prior',50,'top_bias_pp'):+.1f}</bdi></td><td><bdi dir='ltr'>{epv(sc,'strat_prior_pastvote',50,'top_bias_pp'):+.1f}</bdi></td></tr>" for sc in SCN)
+EP_M = {m: epv("none", "strat_prior", 50, "share_mae_pp", m) for m in (50, 100, 200)}
+EP_26 = EP[(EP["T"] == 26) & (EP.m == 100) & (EP.scenario == "none") & (EP.design == "strat_prior") & (EP.n_places == 50)].iloc[0]
+EP_TOP = {T: EP[(EP["T"] == T)].top_list.iloc[0] for T in (22, 25)}
+
 PAGE = f"""<!DOCTYPE html>
 <html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>המודל: איך מנבאים תוצאות סופיות מסדר פרסום הקלפיות | התחזית</title>
@@ -237,13 +282,34 @@ B = argmin Σ_p w_p ‖y(p) − B·x(p)‖² + λ‖B‖²,  w_p = √(valid_p),
 <li>הסכמי העודפים של 2026 נלקחו מדיווחי תקשורת ולא אומתו מול הודעת הוועדה.</li><li>תחזית 2026 מניחה שהקלפיות הרגילות בקובץ שלמות, וההנחה לא אומתה; חלקי המעטפות שנותרו הם היוריסטיקה שלא כויילה.</li>
 <li>הדיוק בשלב מוקדם מאוד (1% נספרו) חלש.</li></ul>
 
-<h2>8. שחזור</h2>
+<h2>8. סקר יציאה: כמה קלפיות ואיזה</h2>
+<p><b>זו הדמיית תכנון מדגם, לא סקר ולא תחזית.</b> בחנו מה היה קורה אילו ראיינו מצביעים ביציאה מ-n קלפיות (מקומות הצבעה), 100 מצביעים בכל אחת. <span class="t ours">חישוב שלנו</span> על <span class="t off">נתוני ועדת הבחירות</span> של הכנסות 22-25: התוצאה האמיתית של כל קלפי היא האמת. מה שמדומה בלבד: מי משקר ובאיזה כיוון. אלה <b>הנחות</b>, לא מדידות.</p>
+<p>אין פרמטר שכוונן על התוצאות, ולכן הכנסות 22-25 משמשות מבחן לשיטות המדגם. אוסף השיטות נקבע לפני שראינו תוצאות. הכנסת 26 נבדקה בנפרד על הספירה החיה ועדיין לא סופית. גודל הקלפי בבחירה וההגרלה נעשים רק לפי מה שידוע לפני יום הבחירות: בעלי זכות בחירה כפול ההצבעה בבחירות הקודמות.</p>
+<p>חמש שיטות: (1) הגרלה פשוטה; (2) הגרלה לפי גודל הקלפי; (3) מיון הקלפיות לפי הפרופיל שלהן בבחירות הקודמות ובחירה שיטתית לפי גודל לאורך המיון, כך שהמדגם מכסה את כל סוגי הקלפיות; (4) כמו 3, ועוד תיקון: מוסיפים לתוצאה הכללית של הבחירות הקודמות את השינוי שנמדד בקלפיות המדגם; (5) כמו 4, ועוד שאלה לנבדק "במה הצבעת בפעם הקודמת" כדי להעריך כמה הנבדקים מדווחים בשגיאה.</p>
+{EP_C1}
+<p>מה רואים: שיטה 4 עדיפה בבירור. ב-50 קלפיות, בלי נבדקים משקרים, שגיאת האחוזים הממוצעת לרשימה היא <b>{epv('none','strat_prior',50,'share_mae_pp'):.2f}</b> נקודות אחוז, לעומת <b>{epv('none','srs_ratio',50,'share_mae_pp'):.2f}</b> בהגרלה פשוטה. מספר הראיונות בכל קלפי כמעט לא משנה: 50 ראיונות {EP_M[50]:.2f}, 100 ראיונות {EP_M[100]:.2f}, 200 ראיונות {EP_M[200]:.2f}. הקלפיות שונות זו מזו הרבה יותר משונים הנבדקים בתוך קלפי, ולכן באותו מספר ראיונות כולל (5,000) עדיף להרחיב את מספר הקלפיות: 50 קלפיות × 100 ראיונות = {epv('none','strat_prior',50,'share_mae_pp',100):.2f}, 100 קלפיות × 50 ראיונות = {epv('none','strat_prior',100,'share_mae_pp',50):.2f}.</p>
+<table><tr><th>קלפיות</th><th>שגיאה ממוצעת (נק׳)</th><th>סטיית תקן, רשימה גדולה</th><th>טווח 90% (נק׳)</th><th>מנדטים לא במקומם</th></tr>{EP_ROWS}</table>
+<p class="small">ממוצע על הכנסות 22-25, 300 הדמיות לכל תא. הרשימה הגדולה: סטיית התקן הושוותה לנוסחה סטטיסטית פשוטה (הגרלה לפי גודל) וההתאמה טובה, ראו <code>model/exitpoll.py</code>. "מנדטים שהוקצו לא נכון" הוא מספר המנדטים שמחוץ למקומם, סכום ההפרשים לחלק ב-2, אחרי הסכמי העודפים של אותה בחירה. המנדטים האחרונים רגישים מאוד, ולכן המספר גבוה יחסית לשגיאת האחוזים. אין כאן מעטפות: מדגם קלפיות אינו מכסה אותן, והאמת בהדמיה היא הקלפיות הרגילות בלבד.</p>
+<h3>כמה קלפיות לפחות</h3>
+<p>מתחת ל-50 אפשר, אבל המחיר ברור. עם 20 קלפיות השגיאה הממוצעת לרשימה ב-{epv('none','strat_prior',20,'share_mae_pp'):.2f} נקודות אחוז וטעות של כ-{epv('none','strat_prior',20,'seats_misallocated'):.0f} מנדטים. עם 10 קלפיות: {epv('none','strat_prior',10,'share_mae_pp'):.2f} נקודות אחוז וכ-{epv('none','strat_prior',10,'seats_misallocated'):.0f} מנדטים. מספר הקלפיות הנדרש להגיע ליעד, לפי ההנחות על שקר (שיטה 4):</p>
+<table><tr><th>הנחה</th><th>שגיאה ≤1.0</th><th>≤0.75</th><th>≤0.5</th><th>מנדטים ≤4</th></tr>{EP_NEED}</table>
+<h3>נבדקים שמשקרים</h3>
+{EP_C2}
+<p>הממצא המרכזי: <b>שקר הוא הטיה, ולא נעלם עם יותר קלפיות.</b> הוספת קלפיות מורידה את הרעש אבל לא את ההטיה. בהנחה ש-15% מבוחרי הרשימה הגדולה מציינים רשימה אחרת, הרשימה הגדולה נמדדת נמוך בכ-3.8 עד 3.9 נקודות אחוז בכל גודל מדגם.</p>
+<table><tr><th>הנחה (50 קלפיות)</th><th>שיטה 2</th><th>שיטה 4</th><th>שיטה 5</th><th>הטיה ש. 4</th><th>הטיה ש. 5</th></tr>{EP_SC}</table>
+<p class="small">שלוש העמודות הראשונות: שגיאה ממוצעת לרשימה בנקודות אחוז. הטיה: הרשימה הגדולה, מדוד פחות אמת, בנקודות אחוז. שיטה 2 היא הגרלה לפי גודל.</p>
+<p><b>יתירות:</b> שאלת ההצבעה הקודמת (שיטה 5) מתקנת את ההטיה של הרשימה הגדולה כמעט לגמרי בהנחה שהשקר דומה בשתי השאלות, אבל מוסיפה רעש: בלי שקר היא גרועה מ-4, והיא מועילה רק מכ-60 קלפיות. ההנחה שהשקר יציב בין שאלה לשאלה היא אופטימית, ושאלת "הצבעה קודמת" כאן מדומה מפרופיל הקלפי בבחירות הקודמות, לא מהצבעה אמיתית של הנבדקים: בעולם האמיתי יש גם שגיאות זיכרון ומעבר בין רשימות. אל תקראו את זה כהוכחה שהשיטה עובדת.</p>
+<p><b>אילו קלפיות:</b> מיון לפי הפרופיל בבחירות הקודמות ובחירה שיטתית לפי גודל. דוגמה למדגם של 60 קלפיות לכנסת 26 (אילוסטרציה, נבנתה מתוצאות הספירה הנוכחית, לא המלצה מבצעית): <code>results/exitpoll_example_sample_k26.csv</code>. בתכנון אמיתי הרשימה נבחרת לפני הבחירות מרשימת הקלפיות שהוועדה מפרסמת, לפי הבחירות הקודמות.</p>
+<p class="small">מגבלות: מעטפות וקולות חיילים, אסירים וכדומה לא במדגם. לא הודלו חוסר שיתוף פעולה של קלפיות שלמות, מראיינים עם הטיה, הצבעה מוקדמת של בוחרים לפני היציאה, ושינוי בהרכב הבוחרים לפי שעה ביום. הכנסת 26 (נתונים חיים, זמני): 50 קלפיות בשיטה 4, שגיאה ממוצעת {EP_26.share_mae_pp:.2f} נקודות אחוז, {EP_26.seats_misallocated:.1f} מנדטים. הכנסות 22-25 הן נתוני פיתוח של שאר המודל, אבל כאן אין כוונון, ולכן הן מבחן ראוי לשיטות המדגם. התוצאות הן סימולציה של תכנון ולא טענה על סקר אמיתי כלשהו.</p>
+
+<h2>9. שחזור</h2>
 <p>הקוד, הנתונים שנאספו והמבחנים: <a href="{REPO}" dir="ltr">{REPO}</a>. להרצה:</p>
 <pre class="f">python3 scripts/fetch_history.py
 python3 -m model.backtest
 python3 -m model.coverage
 python3 -m model.simulate
 python3 -m model.live_forecast
+python3 -m model.exitpoll
 python3 docs/site/build.py</pre>
 <p>דף זה נבנה מתוצאות המאגר על ידי הסקריפט האחרון. תיעוד נוסף במאגר: <code>docs/method.md</code>, <code>docs/backtest.md</code>, <code>docs/how-it-works.md</code>.</p>
 <footer>הנתונים הגולמיים הם של ועדת הבחירות המרכזית (https://votes26.bechirot.gov.il, https://data.gov.il). פרויקט עצמאי, אינו מזוהה עם הוועדה ואינו מאושר על ידה. המודל אינו סקר ואינו תוצאה רשמית.</footer>

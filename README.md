@@ -54,3 +54,7 @@ The files are served through a CDN (`cache-control: max-age=60`). On 29.10 the C
 11:24:20 GMT but our polls only saw it at 11:33:55 UTC, so `Last-Modified` is the file generation time and our
 first-seen time is the time the new version became visible to us, up to ~9 minutes later in that case. Use `cec_last_modified`
 for ordering and the snapshot time for latency analysis.
+
+## Exit-poll sampling design (simulation)
+
+`python -m model.exitpoll` simulates polls of n voting places (100 interviews each) on K22-25 results: sampling error vs n, five designs, and assumed wrong-answer scenarios (assumptions, not measurements). No parameter is tuned on outcomes. Results: `results/exitpoll.csv`; example K26 place list (illustration only): `results/exitpoll_example_sample_k26.csv`. Section 8 of the page.
