@@ -197,13 +197,39 @@ def run(T, reps=300, scen=None):
     return pd.DataFrame(rows)
 
 def select_sample(T, n=60, seed=0):
-    """Places to interview for election T: systematic PPS along the order of the previous election's profile.
-    Needs the list of places of T (public before election day) and the results of T-1. Returns the chosen places."""
+    """Places to interview for election T. Rule: sort all voting places by the first principal component of their
+    previous-election profile, then pick n places systematically with probability proportional to the expected size
+    (registered voters x previous turnout), random start from `seed`. Each pick gets two backups: the nearest places
+    in that order with the same profile group (Haredi-profile, Arab-profile, other), not already picked.
+    Needs the list of places of T (public before election day) and the results of T-1."""
     D = prepare(T); idx, _ = pick(D, "strat_prior", n, np.random.default_rng(seed))
-    f = D["frame"].iloc[idx]
-    out = f[["loc_name", "loc_code", "station", "registered", "valid"]].copy()
-    out["prior_rank_in_order"] = [int(np.where(D["order"] == i)[0][0]) for i in idx]
-    return out.sort_values("prior_rank_in_order").reset_index(drop=True).drop(columns="valid")
+    f = D["frame"]; o = D["order"]; g = D["grp"]
+    pos = np.empty(len(o), int); pos[o] = np.arange(len(o)); taken = set(idx.tolist())
+    names = {0: "other", 1: "haredi-profile", 2: "arab-profile"}
+    try:
+        from .addresses import load_addr
+        ad = load_addr(T)
+        ad = None if ad is None else ad.set_index(["loc_code", "place_no"])
+    except Exception:
+        ad = None
+    rows = []
+    for rank, i in enumerate(sorted(idx, key=lambda i: pos[i]), 1):
+        bk = []
+        for d in (1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6):
+            c = int(o[(pos[i] + d) % len(o)])
+            if g[c] == g[i] and c not in taken and c not in bk: bk.append(c)
+            if len(bk) == 2: break
+        def lab(j):
+            r = f.iloc[j]; return f"{r.loc_name} / {int(r.station)}"
+        r = f.iloc[i]
+        addr = ""
+        if ad is not None and (r.loc_code, int(r.station)) in ad.index:
+            x = ad.loc[(r.loc_code, int(r.station))]; x = x.iloc[0] if hasattr(x, "iloc") and x.ndim > 1 else x
+            addr = str(x.get("s_addr", "")) if isinstance(x.get("s_addr", ""), str) else ""
+        rows.append(dict(rank_in_order=rank, locality=r.loc_name, loc_code=int(r.loc_code), place_no=int(r.station),
+                         registered=int(r.registered), group=names[int(g[i])], address_draft=addr,
+                         backup1=lab(bk[0]) if bk else "", backup2=lab(bk[1]) if len(bk) > 1 else ""))
+    return pd.DataFrame(rows)
 
 def envelopes():
     """Votes cast in external envelopes (code 9999: soldiers, diplomats, prisoners, hospitals...) are in no box sample.
