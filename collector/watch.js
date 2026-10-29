@@ -33,14 +33,16 @@ async function full(f) {
     try {
       const changed = {};
       for (const f of FILES) {
-        const r = await head(f);
-        const key = (r.headers.get('last-modified') || '') + '|' + (r.headers.get('etag') || '') + '|' + (r.headers.get('content-length') || '');
-        S.polls.push({t, file: f, status: r.status, last_modified: r.headers.get('last-modified'), content_length: r.headers.get('content-length')});
-        if (r.status === 200 && key !== S.last[f]) { changed[f] = key; }
+        try {
+          const r = await head(f);
+          const key = (r.headers.get('last-modified') || '') + '|' + (r.headers.get('etag') || '') + '|' + (r.headers.get('content-length') || '');
+          S.polls.push({t, file: f, status: r.status, last_modified: r.headers.get('last-modified'), content_length: r.headers.get('content-length')});
+          if (r.status === 200 && key !== S.last[f]) { changed[f] = key; }
+        } catch (e) { S.polls.push({t, file: f, error: String(e)}); }
       }
       if (Object.keys(changed).length) {
         const snap = {fetched_at_utc: new Date().toISOString(), files: {}};
-        for (const f of Object.keys(changed)) { const x = await full(f); if (x.status === 200) { snap.files[f] = x; S.last[f] = changed[f]; } }
+        for (const f of Object.keys(changed)) { try { const x = await full(f); if (x.status === 200) { snap.files[f] = x; S.last[f] = changed[f]; } } catch (e) { S.polls.push({t, file: f, error: 'full:' + String(e)}); } }
         if (Object.keys(snap.files).length) S.snaps.push(snap);
       }
     } catch (e) { S.polls.push({t, error: String(e)}); }
