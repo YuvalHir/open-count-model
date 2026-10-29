@@ -1,0 +1,15 @@
+scenario,design,sign_agree,mean_abs_diff_seats
+hard_both,pps_ratio,10/14,6.82
+hard_both,strat_prior,9/14,3.03
+hard_nr,pps_ratio,9/14,3.37
+hard_nr,strat_prior,9/14,3.09
+noise10,pps_ratio,8/13,1.33
+noise10,strat_prior,6/12,1.64
+none,pps_ratio,7/9,1.28
+none,strat_prior,7/9,1.22
+place_refuse,pps_ratio,10/14,3.71
+place_refuse,strat_prior,8/11,1.15
+refuse20,pps_ratio,7/12,2.6
+refuse20,strat_prior,8/12,2.54
+shy15,pps_ratio,8/13,2.74
+shy15,strat_prior,8/12,2.76
