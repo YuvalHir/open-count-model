@@ -20,8 +20,8 @@ for nm, tx, nt in (("split", "התאמה עם פיצול קלפיות (מקום 
     q = pd.read_csv(R + ("matching_split.csv" if nm == "split" else "matching_cum.csv")); q = q.groupby("strategy").mean(numeric_only=True)
     add("matching", tx, "טעות בנתח הקולות, 20% נספרו", q.loc["fill", "random_20_shareMAE"], q.loc[nm, "random_20_shareMAE"], "פיתוח: כנסות 22-26 (נקבע מראש, matching-split-v1)", nt)
 l = pd.read_csv(R + "loo.csv")
-add("matching", "בחירת פרמטרים לפי כנסות אחרות (עזיבת בחירות אחת)", "מנדטים שגויים", l.default_held_seats.mean(), l.held_seats.mean(), "מוחזק בחוץ: כל כנסת בתורה", "אין יתרון על ברירת המחדל")
-add("envelopes", "קולות מעטפות חיצוניות: נטייה היסטורית מול 'כמו הקלפיות הרגילות'", "טעות בנתח הקולות", 0.565, 0.531, "מוחזק בחוץ: כנסת 25", "מפספס שינויים חדשים; מקור: results/envelope_backtest.txt")
+add("matching", "בחירת פרמטרים לפי כנסות אחרות (עזיבת בחירות אחת)", "מנדטים שגויים", l.default_held_seats.mean(), l.held_seats.mean(), "אימות בשימוש חוזר: כל כנסת בתורה", "אין יתרון על ברירת המחדל")
+add("envelopes", "קולות מעטפות חיצוניות: נטייה היסטורית מול 'כמו הקלפיות הרגילות'", "טעות בנתח הקולות", 0.565, 0.531, "אימות בשימוש חוזר: כנסת 25", "מפספס שינויים חדשים; מקור: results/envelope_backtest.txt")
 _s = pd.read_csv(R + "sizemodel.csv")
 def _sg(o, m, f): return _s[(_s.order == o) & (_s["mode"] == m) & np.isclose(_s.frac, f)].share_mae_pp.mean()
 add("size", "מודל גודל קלפי (רגרסיה על שינוי בגודל), 20% נספרו, סדר אקראי", "טעות בנתח הקולות", _sg("random", "base", .2), _sg("random", "size_ridge", .2), "פיתוח: כנסות 22-26 (נקבע מראש, sizemodel-v1)", "משתפר בסדר אקראי אבל מחמיר בסדר של הצבעה נמוכה קודם (47% יותר): נדחה לפי הכלל שנקבע מראש")
@@ -48,7 +48,7 @@ add("transfer", "אותו מודל מעבר, 20% נספרו, סדר אקראי",
 add("transfer", "אותו מודל מעבר, 20% נספרו, סדר הצבעה נמוכה קודם", "טעות בנתח הקולות", _qg("low_turnout_first", "base", .2), _qg("low_turnout_first", "transfer_k002", .2), "פיתוח: כנסות 23-26 (נקבע מראש, round2-v1)", "גרוע יותר")
 _h = pd.read_csv(R + "holdout.csv")
 def _hg(o, m, f, col, ts=(19, 20, 21)): return _h[(_h.order == o) & (_h.method == m) & np.isclose(_h.frac, f) & _h["T"].isin(ts)][col].mean()
-_HD = "מוחזק בחוץ: כנסות 19-21, נקבע מראש (holdout-v1)"
+_HD = "אימות בשימוש חוזר: כנסות 19-21, נקבע מראש (holdout-v1)"
 add("holdout", "המודל מול סיכום גולמי, 5% נספרו, סדר אקראי (כנסות 19-21)", "מנדטים שגויים", _hg("random", "raw_counted", .05, "seats"), _hg("random", "ridge", .05, "seats"), _HD, "מנדטים שלנו, בלי הסכמי עודפים")
 add("holdout", "המודל מול סיכום גולמי, 20% נספרו, סדר ליכוד נמוך קודם (כנסות 19-21)", "מנדטים שגויים", _hg("low_likud_first", "raw_counted", .2, "seats"), _hg("low_likud_first", "ridge", .2, "seats"), _HD, "")
 add("holdout", "המודל מול סיכום גולמי, 20% נספרו, סדר אקראי, טעות בנתחים (כנסות 19-21)", "טעות בנתח הקולות", _hg("random", "raw_counted", .2, "share_mae_pp"), _hg("random", "ridge", .2, "share_mae_pp"), _HD, "כישלון: בכנסת 21 המודל גרוע מהסיכום הגולמי (0.37 מול 0.18)")
@@ -78,7 +78,7 @@ except FileNotFoundError: pass
 try:
     S = pd.read_csv(R + "switch.csv"); S["set"] = S["T"].apply(lambda t: "dev" if t >= 23 else "hold")
     sv = lambda st, o, f, m: S[(S.set == st) & (S.order == o) & (S.frac == f) & (S.method == m)].seats.mean()
-    for st, lab in (("dev", "פיתוח: כנסות 23-26"), ("hold", "מדגם מוחזק: כנסות 20-21")):
+    for st, lab in (("dev", "פיתוח: כנסות 23-26"), ("hold", "אימות בשימוש חוזר: כנסות 20-21")):
         add("switch", "מעבר אוטומטי למודל ההעברה לפי סטיית g: סדר מוטה (5% נספרו)", "מנדטים שגויים", sv(st, "low_likud_first", 0.05, "base"), sv(st, "low_likud_first", 0.05, "switch"), lab, "")
         add("switch", "מעבר אוטומטי למודל ההעברה לפי סטיית g: סדר אקראי (5% נספרו)", "מנדטים שגויים", sv(st, "random", 0.05, "base"), sv(st, "random", 0.05, "switch"), lab, "לא אומץ: פוגע בסדר אקראי בפיתוח")
 except FileNotFoundError: pass
